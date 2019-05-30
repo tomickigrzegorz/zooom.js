@@ -1,0 +1,38 @@
+.responsive {
+  width: 100%;
+  height: auto;
+}
+
+img {
+  cursor: zoom-in;
+}
+
+@keyframes zooom-fade {
+  0% {
+    opacity: 0;
+  }
+}
+
+#zooom-overlay {
+  background: #fff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+  animation: zooom-fade .3s;
+}
+
+.zooom {
+
+  &-wrap,
+  &-img {
+    position: relative;
+    z-index: 100;
+    cursor: zoom-out;
+    transition: all .3s;
+  }
+}
