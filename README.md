@@ -50,8 +50,8 @@ zooomOverlay | `String` | ✔ | The name of the layer, in CSS `#zooom-overlay`
 | Browser | Version |
 | :---- | :-------: |
 | Chrome | 74+ |
-| Opera | 58+ |
 | Firefox | 66+ |
+| Opera | 58+ |
 | Edge | 44+ |
 | Vivaldi | 2.4+ |
 | IE | 10+ |
@@ -60,11 +60,11 @@ zooomOverlay | `String` | ✔ | The name of the layer, in CSS `#zooom-overlay`
 
 | Browser | Version |
 | :---- | :-------: |
-| MI Android | 10.6+ |
 | Chrome | 74+ |
 | Firefox | 66+ |
 | Opera | 51+ |
 | Ege | 42+ |
+| MI Android | 10.6+ |
 
 ## License
 This project is available under the [MIT](https://opensource.org/licenses/mit-license.php) license.
