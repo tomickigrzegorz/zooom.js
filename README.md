@@ -24,14 +24,14 @@ A library [Skeleton CSS](https://github.com/dhg/Skeleton) was used in this proje
 
 ## Configuration of the plugin
 
-props | default | require | description
+Options | Default | Require | Description
 ---- | :-------: | :--------: | -----------
-**zooomElement** | `String` | ✔ | Add a class to the image element after which the zoom will work or set `img` then all pictures on the page will be taken for zooming
-**zooomWrap** | `String` | ✔ | The name of the class added to the image wrapper now `zooom-wrap`
-**zooomImg** | `String` | ✔ | The name of the class added to the pictures now `zooom-img`
-**zooomOverlay** | `String` | ✔ | The name of the layer, in CSS `#zooom-overlay`
+zooomElement | `String` | ✔ | Add a class to the image element after which the zoom will work or set `img` then all pictures on the page will be taken for zooming
+zooomWrap | `String` | ✔ | The name of the class added to the image wrapper now `zooom-wrap`
+zooomImg | `String` | ✔ | The name of the class added to the pictures now `zooom-img`
+zooomOverlay | `String` | ✔ | The name of the layer, in CSS `#zooom-overlay`
 
-JAVASCRIPT
+### Sample configuration
 ```javascript
   const options = {
     zooomElement: 'img',
