@@ -1,6 +1,6 @@
 ## ZOOOM.JS
 A simple plugin for image zoooming without dependencies. Only pure javascipt. 
-Idea based on [zoom.js](https://github.com/tomik23/zooom.js)
+Idea based on [zoom.js](https://github.com/fat/zoom.js)
 
 ### Demo
 
