@@ -34,7 +34,7 @@ props | type | default | require | description
 ### Sample configuration
 ```javascript
 const options = {
-    element: 'img',
+    element: 'img', // you can also add a class name
     padding: 80,
     overlay: {
       color: '#000',
