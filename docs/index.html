@@ -33,10 +33,12 @@
   <script>
     window.addEventListener('load', function () {
       new Zooom({
-        zooomElement: 'img',
-        zooomWrap: 'zooom-wrap',
-        zooomImg: 'zooom-img',
-        zooomOverlay: 'zooom-overlay'
+        element: 'img',
+        padding: 80,
+        overlay: {
+          color: '#000',
+          opacity: '.5'
+        }
       });
     })
   </script>
