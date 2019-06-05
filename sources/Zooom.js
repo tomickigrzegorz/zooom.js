@@ -3,10 +3,15 @@ import './ReplaceWithPolyfill'
 
 class Zooom {
   constructor (options) {
-    this.zooomElement = options.zooomElement
-    this.zooomWrap = options.zooomWrap
-    this.zooomImg = options.zooomImg
-    this.zooomOverlay = options.zooomOverlay
+    this.element = options.element
+    this.padding = options.padding || 80
+    this.wrap = 'zooom-wrap'
+    this.img = 'zooom-img'
+    this.overlay = 'zooom-overlay'
+
+    const { color, opacity } = options.overlay
+    this.color = color || '#fff'
+    this.opacity = opacity || '1'
 
     this.addEventImage()
 
@@ -16,7 +21,7 @@ class Zooom {
   }
 
   addEventImage () {
-    const imageList = document.querySelectorAll(this.zooomElement)
+    const imageList = document.querySelectorAll(this.element)
     for (let image of imageList) {
       image.addEventListener('click', e => {
         e.stopPropagation()
@@ -29,33 +34,33 @@ class Zooom {
 
   createWrapper () {
     this.wrapper = document.createElement('div')
-    this.wrapper.classList.add(this.zooomWrap)
+    this.wrapper.classList.add(this.wrap)
 
     this.wrapImage(this.imageZooom, this.wrapper)
 
-    this.imageZooom.classList.add(this.zooomImg)
+    this.imageZooom.classList.add(this.img)
     this.overlayAdd()
   }
 
   removeWrapper () {
-    const wrapZooom = document.querySelector(`.${this.zooomWrap}`)
+    const wrapZooom = document.querySelector(`.${this.wrap}`)
     const transition = this.transitionEvent()
 
     if (wrapZooom) {
-      const image = document.querySelector(`.${this.zooomImg}`)
+      const image = document.querySelector(`.${this.img}`)
       image.removeAttribute('style')
       wrapZooom.removeAttribute('style')
       wrapZooom.addEventListener(transition, () => {
         // wrapZooom.outerHTML = wrapZooom.innerHTML
         wrapZooom.replaceWith(...wrapZooom.childNodes)
-        image.classList.remove(this.zooomImg)
+        image.classList.remove(this.img)
         this.overlayRemove()
       })
     }
   }
 
   zooomInit () {
-    const wrapZooom = document.querySelector(`.${this.zooomWrap}`)
+    const wrapZooom = document.querySelector(`.${this.wrap}`)
     if (wrapZooom === null) {
       this.createWrapper()
       this.imageTransform()
@@ -66,12 +71,13 @@ class Zooom {
 
   overlayAdd () {
     const overlay = document.createElement('div')
-    overlay.id = this.zooomOverlay
+    overlay.id = this.overlay
+    overlay.setAttribute('style', `background-color: ${this.color}; opacity: ${this.opacity}`)
     document.body.appendChild(overlay)
   }
 
   overlayRemove () {
-    const overlay = document.getElementById(this.zooomOverlay)
+    const overlay = document.getElementById(this.overlay)
     if (overlay) {
       overlay.parentNode.removeChild(overlay)
     }
@@ -119,8 +125,8 @@ class Zooom {
 
     const maxScale = imageWidth / targetWidth
 
-    const viewportHeight = window.innerHeight - 80
-    const viewportWidth = document.documentElement.clientWidth - 80
+    const viewportHeight = window.innerHeight - this.padding
+    const viewportWidth = document.documentElement.clientWidth - this.padding
 
     const imageApectRatio = imageWidth / imageHeight
     const vieportAspectRatio = viewportWidth / viewportHeight

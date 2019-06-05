@@ -24,21 +24,23 @@ A library [Skeleton CSS](https://github.com/dhg/Skeleton) was used in this proje
 
 ## Configuration of the plugin
 
-Options | Default | Require | Description
----- | :-------: | :--------: | -----------
-zooomElement | `String` | ✔ | Add a class to the image element after which the zoom will work or set `img` then all pictures on the page will be taken for zooming
-zooomWrap | `String` | ✔ | The name of the class added to the image wrapper now `zooom-wrap`
-zooomImg | `String` | ✔ | The name of the class added to the pictures now `zooom-img`
-zooomOverlay | `String` | ✔ | The name of the layer, in CSS `#zooom-overlay`
+props | type | default | require | description
+---- | :-------: | :-------: | :--------: | -----------
+`element` | `String` |  | ✔ | Element to zoom img or class name
+`padding` | `Number` | `80` |  | Padding added to image
+`color` | `String` | `#fff` | | Overlay layer color
+`opacity` | `String` | `1` |  | Overlay layer opacity
 
 ### Sample configuration
 ```javascript
-  const options = {
-    zooomElement: 'img',
-       zooomWrap: 'zooom-wrap',
-        zooomImg: 'zooom-img',
-    zooomOverlay: 'zooom-overlay'
-  }
+const options = {
+    element: 'img',
+    padding: 80,
+    overlay: {
+      color: '#000',
+    opacity: '.5'
+    }
+}
 
   new Zooom(options);
 ```
