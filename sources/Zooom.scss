@@ -14,7 +14,6 @@ img {
 }
 
 #zooom-overlay {
-  background: #fff;
   position: fixed;
   top: 0;
   left: 0;
@@ -22,7 +21,6 @@ img {
   bottom: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 1;
   animation: zooom-fade .3s;
 }
 

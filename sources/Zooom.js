@@ -4,9 +4,14 @@ import './ReplaceWithPolyfill'
 class Zooom {
   constructor (options) {
     this.zooomElement = options.zooomElement
-    this.zooomWrap = options.zooomWrap
-    this.zooomImg = options.zooomImg
-    this.zooomOverlay = options.zooomOverlay
+    this.zooomImgPadding = options.zooomImgPadding
+    this.zooomWrap = 'zooom-wrap'
+    this.zooomImg = 'zooom-img'
+    this.zooomOverlay = 'zooom-overlay'
+    const { color, opacity } = options.zooomOverlay
+
+    this.color = color || '#fff'
+    this.opacity = opacity || '1'
 
     this.addEventImage()
 
@@ -67,6 +72,7 @@ class Zooom {
   overlayAdd () {
     const overlay = document.createElement('div')
     overlay.id = this.zooomOverlay
+    overlay.setAttribute('style', `background-color: ${this.color}; opacity: ${this.opacity}`)
     document.body.appendChild(overlay)
   }
 
@@ -119,8 +125,8 @@ class Zooom {
 
     const maxScale = imageWidth / targetWidth
 
-    const viewportHeight = window.innerHeight - 80
-    const viewportWidth = document.documentElement.clientWidth - 80
+    const viewportHeight = window.innerHeight - this.zooomImgPadding
+    const viewportWidth = document.documentElement.clientWidth - this.zooomImgPadding
 
     const imageApectRatio = imageWidth / imageHeight
     const vieportAspectRatio = viewportWidth / viewportHeight
