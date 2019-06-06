@@ -9,9 +9,14 @@ class Zooom {
     this.img = 'zooom-img'
     this.overlay = 'zooom-overlay'
 
-    const { color, opacity } = options.overlay
-    this.color = color || '#fff'
-    this.opacity = opacity || '1'
+    if (typeof options.overlay === 'undefined') {
+      this.color = '#fff'
+      this.opacity = '1'
+    } else {
+      const { color, opacity } = options.overlay
+      this.color = color
+      this.opacity = opacity
+    }
 
     this.addEventImage()
 
