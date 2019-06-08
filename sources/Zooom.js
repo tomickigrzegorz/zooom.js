@@ -145,7 +145,7 @@ class Zooom {
       imageScale = 1
     }
 
-    this.imageZooom.setAttribute('style', `transform: scale(${imageScale})`)
+    this.imageZooom.setAttribute('style', `transform: scale(${imageScale}) translateZ(0);`)
   }
 
   imageTranslate ({ targetWidth, targetHeight }) {
