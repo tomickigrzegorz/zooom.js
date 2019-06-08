@@ -132,18 +132,12 @@ class Zooom {
 
     let imageScale = 1
 
-    switch (imageScale) {
-      case (imageWidth < viewportWidth && imageHeight < viewportHeight): {
-        imageScale = maxScale
-        break
-      }
-      case (imageApectRatio < vieportAspectRatio) : {
-        imageScale = (viewportHeight / imageHeight) * maxScale
-        break
-      }
-      default:
-        imageScale = (viewportWidth / imageWidth) * maxScale
-        break
+    if (imageWidth < viewportWidth && imageHeight < viewportHeight) {
+      imageScale = maxScale
+    } else if (imageApectRatio < vieportAspectRatio) {
+      imageScale = (viewportHeight / imageHeight) * maxScale
+    } else {
+      imageScale = (viewportWidth / imageWidth) * maxScale
     }
 
     if (imageScale <= 1) {
