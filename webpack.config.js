@@ -1,6 +1,7 @@
 const path = require('path')
 const HtmlWebPackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
 function prodPlugin (plugin, argv) {
@@ -66,6 +67,12 @@ module.exports = (env, argv) => {
         new CleanWebpackPlugin({
           verbose: true
         }),
+        argv
+      ),
+      prodPlugin(
+        new CopyPlugin([
+          { from: 'images', to: 'images' }
+        ]),
         argv
       ),
       new MiniCssExtractPlugin({
