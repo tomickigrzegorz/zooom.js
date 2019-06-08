@@ -68,7 +68,7 @@ class Zooom {
     const wrapZooom = document.querySelector(`.${this.wrap}`)
     if (wrapZooom === null) {
       this.createWrapper()
-      this.imageTransform()
+      this.imageProperty()
     } else {
       this.removeWrapper()
     }
@@ -111,12 +111,49 @@ class Zooom {
     wrapper.appendChild(el)
   }
 
-  imageTransform () {
+  imageProperty () {
     const targetWidth = this.imageZooom.clientWidth
     const targetHeight = this.imageZooom.clientHeight
     const imageWidth = this.imageZooom.naturalWidth
     const imageHeight = this.imageZooom.naturalHeight
 
+    this.imageTranslate(targetWidth, targetHeight)
+    this.imageScale(imageWidth, imageHeight, targetWidth)
+  }
+
+  imageScale (imageWidth, imageHeight, targetWidth) {
+    const maxScale = imageWidth / targetWidth
+
+    const viewportHeight = window.innerHeight - this.padding
+    const viewportWidth = document.documentElement.clientWidth - this.padding
+
+    const imageApectRatio = imageWidth / imageHeight
+    const vieportAspectRatio = viewportWidth / viewportHeight
+
+    let imageScale = 1
+
+    switch (imageScale) {
+      case (imageWidth < viewportWidth && imageHeight < viewportHeight): {
+        imageScale = maxScale
+        break
+      }
+      case (imageApectRatio < vieportAspectRatio) : {
+        imageScale = (viewportHeight / imageHeight) * maxScale
+        break
+      }
+      default:
+        imageScale = (viewportWidth / imageWidth) * maxScale
+        break
+    }
+
+    if (imageScale <= 1) {
+      imageScale = 1
+    }
+
+    this.imageZooom.setAttribute('style', `transform: scale(${imageScale})`)
+  }
+
+  imageTranslate (targetWidth, targetHeight) {
     const rect = this.imageZooom.getBoundingClientRect()
 
     const viewportY = window.innerHeight / 2
@@ -128,31 +165,7 @@ class Zooom {
     const translateY = viewportY - imageCenterY
     const translateX = viewportX - imageCenterX
 
-    const maxScale = imageWidth / targetWidth
-
-    const viewportHeight = window.innerHeight - this.padding
-    const viewportWidth = document.documentElement.clientWidth - this.padding
-
-    const imageApectRatio = imageWidth / imageHeight
-    const vieportAspectRatio = viewportWidth / viewportHeight
-
-    let imageScale = 1
-
-    if (imageWidth < viewportWidth && imageHeight < viewportHeight) {
-      imageScale = maxScale
-    } else if (imageApectRatio < vieportAspectRatio) {
-      imageScale = (viewportHeight / imageHeight) * maxScale
-    } else {
-      imageScale = (viewportWidth / imageWidth) * maxScale
-    }
-
-    if (imageScale <= 1) {
-      imageScale = 1
-    }
-
     this.wrapper.setAttribute('style', `transform: translate(${translateX}px, ${translateY}px) translateZ(0px);`)
-
-    this.imageZooom.setAttribute('style', `transform: scale(${imageScale})`)
   }
 }
 
