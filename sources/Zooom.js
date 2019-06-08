@@ -68,7 +68,8 @@ class Zooom {
     const wrapZooom = document.querySelector(`.${this.wrap}`)
     if (wrapZooom === null) {
       this.createWrapper()
-      this.imageProperty()
+      this.imageTranslate(this.imageProperty())
+      this.imageScale(this.imageProperty())
     } else {
       this.removeWrapper()
     }
@@ -112,16 +113,16 @@ class Zooom {
   }
 
   imageProperty () {
-    const targetWidth = this.imageZooom.clientWidth
-    const targetHeight = this.imageZooom.clientHeight
-    const imageWidth = this.imageZooom.naturalWidth
-    const imageHeight = this.imageZooom.naturalHeight
-
-    this.imageTranslate(targetWidth, targetHeight)
-    this.imageScale(imageWidth, imageHeight, targetWidth)
+    const propImage = {
+      targetWidth: this.imageZooom.clientWidth,
+      targetHeight: this.imageZooom.clientHeight,
+      imageWidth: this.imageZooom.naturalWidth,
+      imageHeight: this.imageZooom.naturalHeight
+    }
+    return propImage
   }
 
-  imageScale (imageWidth, imageHeight, targetWidth) {
+  imageScale ({ imageWidth, imageHeight, targetWidth }) {
     const maxScale = imageWidth / targetWidth
 
     const viewportHeight = window.innerHeight - this.padding
@@ -147,7 +148,7 @@ class Zooom {
     this.imageZooom.setAttribute('style', `transform: scale(${imageScale})`)
   }
 
-  imageTranslate (targetWidth, targetHeight) {
+  imageTranslate ({ targetWidth, targetHeight }) {
     const rect = this.imageZooom.getBoundingClientRect()
 
     const viewportY = window.innerHeight / 2
