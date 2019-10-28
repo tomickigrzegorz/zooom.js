@@ -94,10 +94,9 @@ class Zooom {
     let el = document.createElement('fakeelement')
 
     let transitions = {
-      'transition': 'transitionend',
-      'OTransition': 'oTransitionEnd',
-      'MozTransition': 'transitionend',
-      'WebkitTransition': 'webkitTransitionEnd'
+      'WebkitTransition': 'webkitTransitionEnd', // Saf 6, Android Browser
+      'MozTransition': 'transitionend', // only for FF < 15
+      'transition': 'transitionend' // IE10, Opera, Chrome, FF 15+, Saf 7+
     }
 
     for (let t in transitions) {
