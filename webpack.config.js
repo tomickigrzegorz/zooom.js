@@ -33,7 +33,6 @@ module.exports = (env, argv) => {
           }
         },
         {
-          // CSS SASS SCSS
           test: /\.(css|sass|scss)$/,
           use: [
             argv.mode === 'development'
