@@ -27,7 +27,7 @@ class Zooom {
 
   addEventImage () {
     const imageList = document.querySelectorAll(this.element)
-    for (let image of imageList) {
+    for (const image of imageList) {
       image.addEventListener('click', e => {
         e.stopPropagation()
         this.imageZooom = e.currentTarget
@@ -73,6 +73,10 @@ class Zooom {
     } else {
       this.removeWrapper()
     }
+
+    document.body.addEventListener('click', () => {
+      this.removeWrapper()
+    })
   }
 
   overlayAdd () {
@@ -91,15 +95,15 @@ class Zooom {
 
   // https://stackoverflow.com/questions/2794148/css3-transition-events
   transitionEvent () {
-    let el = document.createElement('fakeelement')
+    const el = document.createElement('fakeelement')
 
-    let transitions = {
-      'WebkitTransition': 'webkitTransitionEnd', // Saf 6, Android Browser
-      'MozTransition': 'transitionend', // only for FF < 15
-      'transition': 'transitionend' // IE10, Opera, Chrome, FF 15+, Saf 7+
+    const transitions = {
+      WebkitTransition: 'webkitTransitionEnd', // Saf 6, Android Browser
+      MozTransition: 'transitionend', // only for FF < 15
+      transition: 'transitionend' // IE10, Opera, Chrome, FF 15+, Saf 7+
     }
 
-    for (let t in transitions) {
+    for (const t in transitions) {
       if (el.style[t] !== undefined) {
         return transitions[t]
       }
