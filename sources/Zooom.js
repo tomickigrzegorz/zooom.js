@@ -1,5 +1,4 @@
 import './Zooom.scss'
-import './ReplaceWithPolyfill'
 
 class Zooom {
   constructor (options) {
@@ -31,7 +30,6 @@ class Zooom {
       image.addEventListener('click', e => {
         e.stopPropagation()
         this.imageZooom = e.currentTarget
-        // init zooom image
         this.zooomInit()
       })
     }
@@ -55,9 +53,9 @@ class Zooom {
       const image = document.querySelector(`.${this.img}`)
       image.removeAttribute('style')
       wrapZooom.removeAttribute('style')
-      wrapZooom.addEventListener(transition, () => {
-        // wrapZooom.outerHTML = wrapZooom.innerHTML
-        wrapZooom.replaceWith(...wrapZooom.childNodes)
+      wrapZooom.addEventListener(transition, (e) => {
+        wrapZooom.parentElement.appendChild(image)
+        e.currentTarget.parentNode.removeChild(e.currentTarget)
         image.classList.remove(this.img)
         this.overlayRemove()
       })
@@ -95,7 +93,7 @@ class Zooom {
 
   // https://stackoverflow.com/questions/2794148/css3-transition-events
   transitionEvent () {
-    const el = document.createElement('fakeelement')
+    const el = document.createElement('template')
 
     const transitions = {
       WebkitTransition: 'webkitTransitionEnd', // Saf 6, Android Browser
