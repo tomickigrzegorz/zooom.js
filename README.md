@@ -6,10 +6,12 @@ Idea based on [zoom.js](https://github.com/fat/zoom.js)
 
 [Live DEMO](https://tomik23.github.io/zooom.js/)
 
-## Initialization
-Before the first use, clone this repository and install node dependencies:
-
-```yarn``` or ```npm install```
+## Clone the repo and install dependencies
+```bash
+git clone 
+cd zooom
+npm i or yarn
+```
 
 ## Run the app
 Run the app, just call:
