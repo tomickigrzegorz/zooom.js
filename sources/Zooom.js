@@ -71,8 +71,7 @@ class Zooom {
       this.removeWrapper();
     }
 
-    window.addEventListener('scroll', e => {
-      console.log(e);
+    window.addEventListener('scroll', () => {
       this.removeWrapper();
       window.removeEventListener('scroll', this.removeWrapper, true);
     });
