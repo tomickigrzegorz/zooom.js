@@ -1,19 +1,20 @@
-const path = require('path')
-const HtmlWebPackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const CopyPlugin = require('copy-webpack-plugin')
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const path = require('path');
+const HtmlWebPackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-function prodPlugin (plugin, argv) {
-  return argv.mode === 'production' ? plugin : () => {}
+function prodPlugin(plugin, mode) {
+  return mode ? () => {} : plugin;
 }
 
-module.exports = (env, argv) => {
+module.exports = (env, { mode }) => {
+  const inDev = mode === 'development';
   return {
-    devtool: argv.mode === 'production' ? 'none' : 'source-map',
-    mode: argv.mode === 'production' ? 'production' : 'development',
+    devtool: inDev ? 'source-map' : 'none',
+    mode: inDev ? 'development' : 'production',
     entry: {
-      zooom: './sources/Zooom.js'
+      zooom: './sources/Zooom.js',
     },
     output: {
       path: path.resolve(__dirname, 'docs'),
@@ -21,7 +22,7 @@ module.exports = (env, argv) => {
       library: 'Zooom',
       libraryExport: 'default',
       libraryTarget: 'umd',
-      umdNamedDefine: true
+      umdNamedDefine: true,
     },
     module: {
       rules: [
@@ -29,59 +30,52 @@ module.exports = (env, argv) => {
           test: /\.js$/,
           exclude: /node_modules/,
           use: {
-            loader: 'babel-loader'
-          }
+            loader: 'babel-loader',
+          },
         },
         {
           test: /\.(css|sass|scss)$/,
           use: [
-            argv.mode === 'development'
-              ? 'style-loader'
-              : MiniCssExtractPlugin.loader,
+            inDev ? 'style-loader' : MiniCssExtractPlugin.loader,
             {
               loader: 'css-loader',
               options: {
                 importLoaders: 2,
-                sourceMap: true
-              }
+                sourceMap: true,
+              },
             },
             {
               loader: 'postcss-loader',
               options: {
-                sourceMap: true
-              }
+                sourceMap: true,
+              },
             },
             {
               loader: 'sass-loader',
               options: {
-                sourceMap: true
-              }
-            }
-          ]
-        }
-      ]
+                sourceMap: true,
+              },
+            },
+          ],
+        },
+      ],
     },
     plugins: [
       prodPlugin(
         new CleanWebpackPlugin({
-          verbose: true
+          verbose: true,
         }),
-        argv
+        mode
       ),
-      prodPlugin(
-        new CopyPlugin([
-          { from: 'images', to: 'images' }
-        ]),
-        argv
-      ),
+      prodPlugin(new CopyPlugin([{ from: 'images', to: 'images' }]), mode),
       new MiniCssExtractPlugin({
-        filename: './zooom.css'
+        filename: './zooom.css',
       }),
       new HtmlWebPackPlugin({
         filename: 'index.html',
-        template: './sources/index.html'
+        template: './sources/index.html',
         // inject: false
-      })
-    ]
-  }
-}
+      }),
+    ],
+  };
+};
