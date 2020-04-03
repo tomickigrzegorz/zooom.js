@@ -5,7 +5,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 function prodPlugin(plugin, mode) {
-  return mode ? plugin : () => {};
+  return mode === 'production' ? plugin : () => {};
 }
 
 module.exports = (env, { mode }) => {
