@@ -47,28 +47,11 @@ const options = {
   new Zooom(options);
 ```
 
-## Browser Compatibility
+## Browsers support
 
->Desktop:
-
-| Browser | Version |
-| :---- | :-------: |
-| Chrome | 74+ |
-| Firefox | 66+ |
-| Opera | 58+ |
-| Edge | 44+ |
-| Vivaldi | 2.4+ |
-| IE | 10+ |
-
->Mobile:
-
-| Browser | Version |
-| :---- | :-------: |
-| Chrome | 74+ |
-| Firefox | 66+ |
-| Opera | 51+ |
-| Ege | 42+ |
-| MI Android | 10.6+ |
+| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="IE / Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>IE / Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Safari | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Opera | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/vivaldi/vivaldi_48x48.png" alt="Vivaldi" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Vivaldi |
+| --------- | --------- | --------- | --------- | --------- | --------- |
+| IE10, IE11, Edge| last 2 versions| last 2 versions| last 2 versions| last 2 versions| last 2 versions
 
 ## License
 This project is available under the [MIT](https://opensource.org/licenses/mit-license.php) license.
