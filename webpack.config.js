@@ -14,7 +14,7 @@ module.exports = (env, { mode }) => {
     devtool: inDev ? 'source-map' : 'none',
     mode: inDev ? 'development' : 'production',
     entry: {
-      zooom: './sources/Zooom.js',
+      zooom: './sources/script.js',
     },
     output: {
       path: path.resolve(__dirname, 'docs'),

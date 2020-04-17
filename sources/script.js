@@ -1,4 +1,4 @@
-import './Zooom.scss';
+import './style.scss';
 
 class Zooom {
   constructor(options) {
