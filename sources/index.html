@@ -5,42 +5,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
   <title>Zooom</title>
+  <style>
+    .container {
+      position: relative;
+      max-width: 800px;
+      margin: auto;
+      z-index: 999;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .responsive {
+      width: 100%;
+      height: auto;
+    }
+  </style>
 </head>
 
 <body>
   <div class="container">
     <div class="item">
-      <img class="responsive" loading="lazy" width="1200" height="800" src="./images/IMG_01.jpg">
+      <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_01.jpg">
     </div>
     <div class="item">
-      <img class="responsive" loading="lazy" width="1200" height="800" src="./images/IMG_02.jpg">
+      <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_02.jpg">
     </div>
     <div class="row">
       <div class="one-half column">
-        <img class="responsive" loading="lazy" width="1200" height="800" src="./images/IMG_03.jpg">
+        <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_03.jpg">
       </div>
       <div class="one-half column">
-        <img class="responsive" loading="lazy" width="1200" height="800" src="./images/IMG_04.jpg">
+        <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_04.jpg">
       </div>
     </div>
     <div class="item">
-      <img class="responsive" loading="lazy" width="1200" height="800" src="./images/IMG_05.jpg">
+      <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_05.jpg">
     </div>
     <div class="item">
-      <img class="responsive" loading="lazy" width="1200" height="800" src="./images/IMG_06.jpg">
+      <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_06.jpg">
     </div>
     <div class="item">
-      <img class="responsive" loading="lazy" width="1200" height="800" src="./images/IMG_07.jpg">
+      <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_07.jpg">
     </div>
   </div>
 
   <script>
-    window.addEventListener('load', function () {
+    window.addEventListener('DOMContentLoaded', function () {
       new Zooom({
-        element: 'img',
+        element: 'img-zoom',
         padding: 80,
+        animationTiem: 300, // animation time in number
         overlay: {
           color: '#000',
           opacity: '.5',
