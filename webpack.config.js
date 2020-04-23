@@ -1,6 +1,5 @@
 const path = require('path');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
@@ -22,7 +21,6 @@ module.exports = (env, { mode }) => {
       library: 'Zooom',
       libraryExport: 'default',
       libraryTarget: 'umd',
-      umdNamedDefine: true,
     },
     module: {
       rules: [
@@ -32,31 +30,6 @@ module.exports = (env, { mode }) => {
           use: {
             loader: 'babel-loader',
           },
-        },
-        {
-          test: /\.(css|sass|scss)$/,
-          use: [
-            inDev ? 'style-loader' : MiniCssExtractPlugin.loader,
-            {
-              loader: 'css-loader',
-              options: {
-                importLoaders: 2,
-                sourceMap: true,
-              },
-            },
-            {
-              loader: 'postcss-loader',
-              options: {
-                sourceMap: true,
-              },
-            },
-            {
-              loader: 'sass-loader',
-              options: {
-                sourceMap: true,
-              },
-            },
-          ],
         },
       ],
     },
@@ -68,13 +41,8 @@ module.exports = (env, { mode }) => {
         mode
       ),
       prodPlugin(new CopyPlugin([{ from: 'images', to: 'images' }]), mode),
-      new MiniCssExtractPlugin({
-        filename: './zooom.css',
-      }),
       new HtmlWebPackPlugin({
-        filename: 'index.html',
         template: './sources/index.html',
-        // inject: false
       }),
     ],
   };

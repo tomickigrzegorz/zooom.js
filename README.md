@@ -28,7 +28,8 @@ A library [Skeleton CSS](https://github.com/dhg/Skeleton) was used in this proje
 
 props | type | default | require | description
 ---- | :-------: | :-------: | :--------: | -----------
-`element` | `String` |  | ✔ | Element to zoom img or class name
+`element` | `String` |  | ✔ | Element to zoom class name
+`animationTiem` | `Number` | `300` | | Animation speed in milliseconds
 `padding` | `Number` | `80` |  | Padding added to image
 `color` | `String` | `#fff` | | Overlay layer color
 `opacity` | `String` | `1` |  | Overlay layer opacity
@@ -36,12 +37,13 @@ props | type | default | require | description
 ### Sample configuration
 ```javascript
 const options = {
-    element: 'img', // you can also add a class name
-    padding: 80,
-    overlay: {
-      color: '#000',
-    opacity: '.5'
-    }
+  element: 'img-zoom',
+  padding: 80,
+  animationTiem: 300, // animation time in number
+  overlay: {
+    color: '#000',
+  opacity: '.5',
+  },
 }
 
   new Zooom(options);
