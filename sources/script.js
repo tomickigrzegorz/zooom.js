@@ -23,7 +23,7 @@ class Zooom {
     const element = document.getElementById(this.overlay);
     const imageList = document.querySelectorAll(`.${this.element}`);
     for (let i = 0; i < imageList.length; i++) {
-      imageList[i].addEventListener('click', e => {
+      imageList[i].addEventListener('click', (e) => {
         e.preventDefault();
         this.imageZooom = e.currentTarget;
         this.zooomInit(element);
@@ -38,7 +38,7 @@ class Zooom {
   createZoomStyle() {
     const css = document.createElement('style');
 
-    css.innerHTML = `.${this.element}{cursor:zoom-in};@-webkit-keyframes zooom-fade{0% {opacity:0}} @keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index: 1;cursor: zoom-out;transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1;cursor:zoom-out;}`;
+    css.innerHTML = `.${this.element}{cursor:zoom-in};@-webkit-keyframes zooom-fade{0% {opacity:0}} @keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index: 2;cursor: zoom-out;transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1;cursor:zoom-out;}`;
     document.getElementsByTagName('head')[0].appendChild(css);
   }
 
@@ -74,7 +74,7 @@ class Zooom {
     overlay.id = this.overlay;
     overlay.setAttribute(
       'style',
-      `background-color: ${this.color}; display: none;`
+      `background-color: ${this.color}; display: none;`,
     );
     document.body.appendChild(overlay);
   }
@@ -172,7 +172,7 @@ class Zooom {
 
     this.imageZooom.setAttribute(
       'style',
-      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0);`
+      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0);`,
     );
   }
 }
