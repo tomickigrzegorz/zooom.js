@@ -4,11 +4,7 @@
         "es6": true
     },
     "extends": [
-        "airbnb",
-        "prettier"
-    ],
-    "plugins": [
-        "prettier"
+        "airbnb-base"
     ],
     "globals": {
         "Atomics": "readonly",
@@ -19,8 +15,26 @@
         "sourceType": "module"
     },
     "rules": {
-        "prettier/prettier": [
-            "error"
+        "linebreak-style": [
+            "error",
+            "windows"
+        ],
+        "class-methods-use-this": "off",
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "no-param-reassign": [
+            2,
+            {
+                "props": false
+            }
+        ],
+        "no-plusplus": [
+            "error",
+            {
+                "allowForLoopAfterthoughts": true
+            }
         ]
     }
 }
