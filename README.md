@@ -36,8 +36,8 @@ npm run build
 
 props | type | default | require | description
 ---- | :-------: | :-------: | :--------: | -----------
-element | `String` |  | ✔ | Element to zoom class name
-animationTiem | `Number` | `300` | | Animation speed in milliseconds
+element | String |  | ✔ | Element to zoom class name
+animationTiem | Number | `300` | | Animation speed in milliseconds
 padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
 opacity | String | `1` |  | Overlay layer opacity
