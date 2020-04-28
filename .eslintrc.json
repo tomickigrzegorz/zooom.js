@@ -30,6 +30,16 @@
                 "props": false
             }
         ],
+        "comma-dangle": [
+            "error",
+            "only-multiline"
+        ],
+        "object-curly-newline": [
+            "error",
+            {
+                "minProperties": 3
+            }
+        ],
         "no-plusplus": [
             "error",
             {

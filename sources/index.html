@@ -11,7 +11,6 @@
       position: relative;
       max-width: 800px;
       margin: auto;
-      z-index: 999;
     }
 
     .row {
@@ -59,10 +58,15 @@
       new Zooom({
         element: 'img-zoom',
         padding: 80,
+        zIndex: 9,
         animationTiem: 300, // animation time in number
+        cursor: {
+          cursorIn: 'zoom-in',
+          cursorOut: 'zoom-out'
+        },
         overlay: {
-          color: '#000',
-          opacity: '.5',
+          color: '#fff',
+          opacity: '1', // [.1, .2, ..., 1]
         },
       });
     });
