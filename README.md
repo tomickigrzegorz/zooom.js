@@ -41,6 +41,7 @@ animationTiem | Number | `300` | | Animation speed in milliseconds
 padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
 opacity | String | `1` |  | Overlay layer opacity
+zIndex | Number | `1` |  | Option to control layer positions
 cursorIn / cursorOut | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 
 ## Sample configuration
@@ -48,10 +49,15 @@ cursorIn / cursorOut | String | `zoom-in / zoom-out` |  | The cursor property sp
 const options = {
   element: 'img-zoom',
   padding: 80,
+  zIndex: 9,
   animationTiem: 300, // animation time in number
+  cursor: {
+    cursorIn: 'zoom-in',
+    cursorOut: 'zoom-out'
+  },
   overlay: {
     color: '#000', // hex only
-  opacity: '.5',
+    opacity: '.5',
   },
 }
 
