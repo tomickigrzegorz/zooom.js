@@ -140,12 +140,7 @@ class Zooom {
     };
   }
 
-  imageScale({
-    imageWidth,
-    imageHeight,
-    targetWidth,
-    targetHeight
-  }) {
+  imageScale({ imageWidth, imageHeight, targetWidth, targetHeight }) {
     const rect = this.imageZooom.getBoundingClientRect();
     const maxScale = imageWidth / targetWidth;
     const winnerHeight = window.innerHeight;
@@ -159,12 +154,12 @@ class Zooom {
 
     const imageCenter = {
       x: rect.left + targetWidth / 2,
-      y: rect.top + targetHeight / 2,
+      y: rect.top + targetHeight / 2
     };
 
     const viewport = {
       x: cWidth / 2,
-      y: winnerHeight / 2,
+      y: winnerHeight / 2
     };
 
     const translate = {
