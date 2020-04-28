@@ -37,7 +37,8 @@
         "object-curly-newline": [
             "error",
             {
-                "minProperties": 3
+                "ImportDeclaration": "always",
+                "ExportDeclaration": "never"
             }
         ],
         "no-plusplus": [
