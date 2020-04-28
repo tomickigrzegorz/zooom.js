@@ -4,7 +4,17 @@ class Zooom {
     this.padding = options.padding || 80;
     this.img = 'zooom-img';
     this.overlay = 'zooom-overlay';
+    this.zIndex = options.zIndex || 1;
     this.animationTiem = options.animationTiem || 300;
+
+    if (typeof options.cursor === 'undefined') {
+      this.cursorIn = 'cursor: zoom-in;';
+      this.cursorOut = 'cursor: zoom-out;';
+    } else {
+      const { cursorIn, cursorOut } = options.cursor;
+      this.cursorIn = `cursor: ${cursorIn};`;
+      this.cursorOut = `cursor: ${cursorOut};`;
+    }
 
     if (typeof options.overlay === 'undefined') {
       this.color = '#fff';
@@ -14,6 +24,7 @@ class Zooom {
       this.color = color;
       this.opacity = opacity;
     }
+
     this.createZoomStyle();
     this.overlayAdd();
     this.addEventImageInit();
@@ -38,7 +49,7 @@ class Zooom {
   createZoomStyle() {
     const css = document.createElement('style');
 
-    css.innerHTML = `.${this.element}{cursor:zoom-in};@-webkit-keyframes zooom-fade{0% {opacity:0}} @keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index: 2;cursor: zoom-out;transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1;cursor:zoom-out;}`;
+    css.innerHTML = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0% {opacity:0}} @keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
     document.getElementsByTagName('head')[0].appendChild(css);
   }
 
@@ -129,7 +140,12 @@ class Zooom {
     };
   }
 
-  imageScale({ imageWidth, imageHeight, targetWidth, targetHeight }) {
+  imageScale({
+    imageWidth,
+    imageHeight,
+    targetWidth,
+    targetHeight
+  }) {
     const rect = this.imageZooom.getBoundingClientRect();
     const maxScale = imageWidth / targetWidth;
     const winnerHeight = window.innerHeight;

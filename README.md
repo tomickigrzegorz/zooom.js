@@ -41,6 +41,7 @@ animationTiem | Number | `300` | | Animation speed in milliseconds
 padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
 opacity | String | `1` |  | Overlay layer opacity
+cursorIn / cursorOut | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 
 ## Sample configuration
 ```javascript
