@@ -40,7 +40,7 @@ element | String |  | ✔ | Element to zoom class name
 animationTiem | Number | `300` | | Animation speed in milliseconds
 padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
-opacity | String | `1` |  | Overlay layer opacity
+opacity | Number | `100` |  | Overlay layer opacity, number must be an integer, maximum number 100
 zIndex | Number | `1` |  | Option to control layer positions
 cursorIn / cursorOut | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 
