@@ -2,32 +2,27 @@ class Zooom {
   constructor(options) {
     this.element = options.element;
     this.padding = options.padding || 80;
-    this.img = 'zooom-img';
-    this.overlay = 'zooom-overlay';
     this.zIndex = options.zIndex || 1;
     this.animationTiem = options.animationTiem || 300;
+    this.img = 'zooom-img';
+    this.overlay = 'zooom-overlay';
+    this.cursorIn = 'cursor: zoom-in;';
+    this.cursorOut = 'cursor: zoom-out;';
+    this.color = '#fff';
+    this.opacity = 1;
 
-    if (typeof options.cursor === 'undefined') {
-      this.cursorIn = 'cursor: zoom-in;';
-      this.cursorOut = 'cursor: zoom-out;';
-    } else {
-      const { cursorIn, cursorOut } = options.cursor;
-      this.cursorIn = `cursor: ${cursorIn};`;
-      this.cursorOut = `cursor: ${cursorOut};`;
+    if (options.cursor) {
+      this.cursorIn = `cursor: ${options.cursor.cursorIn};`;
+      this.cursorOut = `cursor: ${options.cursor.cursorOut};`;
     }
 
-    if (typeof options.overlay === 'undefined') {
-      this.color = '#fff';
-      this.opacity = '1';
-    } else {
-      const { color, opacity } = options.overlay;
-      this.color = color;
-      this.opacity = opacity;
+    if (options.overlay) {
+      const opacity = Math.floor(options.overlay.opacity);
+      this.color = options.overlay.color;
+      this.opacity = opacity > 100 ? 1 : opacity / 100;
     }
 
     this.createZoomStyle();
-    this.overlayAdd();
-    this.addEventImageInit();
   }
 
   addEventImageInit() {
@@ -51,6 +46,8 @@ class Zooom {
 
     css.innerHTML = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0% {opacity:0}} @keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
     document.getElementsByTagName('head')[0].appendChild(css);
+
+    this.ceateOverlayAndAdd();
   }
 
   removeImageStyle(element) {
@@ -80,7 +77,7 @@ class Zooom {
     });
   }
 
-  overlayAdd() {
+  ceateOverlayAndAdd() {
     const overlay = document.createElement('div');
     overlay.id = this.overlay;
     overlay.setAttribute(
@@ -88,6 +85,8 @@ class Zooom {
       `background-color: ${this.color}; display: none;`,
     );
     document.body.appendChild(overlay);
+
+    this.addEventImageInit();
   }
 
   fadeIn(el) {
@@ -98,7 +97,9 @@ class Zooom {
       if (op < opacity) {
         op += 0.1;
       }
-      el.style.opacity = op;
+
+      el.style.opacity = op >= 1 ? 1 : op - 0.1;
+
       el.style.display = 'block';
       if (op < opacity) {
         requestAnimationFrame(fade);
@@ -120,7 +121,7 @@ class Zooom {
       }
 
       el.style.opacity = opacity;
-      if (opacity > 0.1) {
+      if (opacity >= 0.1) {
         requestAnimationFrame(fade);
       } else {
         el.style.opacity = 0;
@@ -142,6 +143,7 @@ class Zooom {
 
   imageScale({ imageWidth, imageHeight, targetWidth, targetHeight }) {
     const rect = this.imageZooom.getBoundingClientRect();
+
     const maxScale = imageWidth / targetWidth;
     const winnerHeight = window.innerHeight;
     const cWidth = document.documentElement.clientWidth;
