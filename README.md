@@ -37,7 +37,7 @@ npm run build
 props | type | default | require | description
 ---- | :-------: | :-------: | :--------: | -----------
 element | String |  | ✔ | Element to zoom class name
-animationTiem | Number | `300` | | Animation speed in milliseconds
+animationTime | Number | `300` | | Animation speed in milliseconds
 padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
 opacity | Number | `100` |  | Overlay layer opacity, number must be an integer, maximum number 100
@@ -50,7 +50,7 @@ const options = {
   element: 'img-zoom',
   padding: 80,
   zIndex: 9,
-  animationTiem: 300, // animation time in number
+  animationTime: 300, // animation time in number
   cursor: {
     cursorIn: 'zoom-in',
     cursorOut: 'zoom-out'

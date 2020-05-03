@@ -3,7 +3,7 @@ class Zooom {
     this.element = options.element;
     this.padding = options.padding || 80;
     this.zIndex = options.zIndex || 1;
-    this.animationTiem = options.animationTiem || 300;
+    this.animationTime = options.animationTime || 300;
     this.img = 'zooom-img';
     this.overlay = 'zooom-overlay';
     this.cursorIn = 'cursor: zoom-in;';
@@ -42,7 +42,7 @@ class Zooom {
 
   createZoomStyle() {
     const css = document.createElement('style');
-    css.innerHTML = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
+    css.innerHTML = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTime}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
 
     document.getElementsByTagName('head')[0].appendChild(css);
     this.ceateOverlayAndAdd();
@@ -52,7 +52,7 @@ class Zooom {
     element.removeAttribute('style');
     setTimeout(() => {
       element.classList.remove(this.img);
-    }, this.animationTiem);
+    }, this.animationTime);
 
     this.fadeOut();
   }
