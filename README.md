@@ -56,8 +56,8 @@ const options = {
     cursorOut: 'zoom-out'
   },
   overlay: {
-    color: '#000', // hex only
-    opacity: '.5',
+    color: '#fff', // hex or color-name
+    opacity: 80, // [10, 20, 34, ..., 100] maximum number 100
   },
 }
 
