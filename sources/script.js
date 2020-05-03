@@ -26,16 +26,15 @@ class Zooom {
   }
 
   addEventImageInit() {
-    const element = document.getElementById(this.overlay);
     const imageList = document.querySelectorAll(`.${this.element}`);
     for (let i = 0; i < imageList.length; i++) {
       imageList[i].addEventListener('click', (e) => {
         e.preventDefault();
         this.imageZooom = e.currentTarget;
-        this.zooomInit(element);
+        this.zooomInit();
       });
     }
-    element.addEventListener('click', () => {
+    this.overlayd.addEventListener('click', () => {
       const zooomImg = document.querySelector(`.${this.img}`);
       this.removeImageStyle(zooomImg);
     });
@@ -43,10 +42,9 @@ class Zooom {
 
   createZoomStyle() {
     const css = document.createElement('style');
+    css.innerHTML = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
 
-    css.innerHTML = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0% {opacity:0}} @keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTiem}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
     document.getElementsByTagName('head')[0].appendChild(css);
-
     this.ceateOverlayAndAdd();
   }
 
@@ -56,15 +54,15 @@ class Zooom {
       element.classList.remove(this.img);
     }, this.animationTiem);
 
-    this.fadeOut(element);
+    this.fadeOut();
   }
 
-  zooomInit(element) {
+  zooomInit() {
     const zooomImg = document.querySelector(`.${this.img}`);
     if (zooomImg === null) {
       this.imageZooom.classList.add(this.img);
       this.imageScale(this.imageProperty());
-      this.fadeIn(element);
+      this.fadeIn();
     } else {
       this.removeImageStyle(zooomImg);
     }
@@ -78,29 +76,31 @@ class Zooom {
   }
 
   ceateOverlayAndAdd() {
-    const overlay = document.createElement('div');
-    overlay.id = this.overlay;
-    overlay.setAttribute(
+    this.overlayd = document.createElement('div');
+    this.overlayd.id = this.overlay;
+    this.overlayd.setAttribute(
       'style',
-      `background-color: ${this.color}; display: none;`,
+      `background-color: ${this.color}; display: none;`
     );
-    document.body.appendChild(overlay);
+    document.body.appendChild(this.overlayd);
 
     this.addEventImageInit();
   }
 
-  fadeIn(el) {
+  fadeIn() {
     let op = 0;
-    const { opacity } = this;
+    const { opacity, overlay } = this;
 
     function fade() {
+      const o = document.getElementById(overlay);
+
       if (op < opacity) {
         op += 0.1;
       }
 
-      el.style.opacity = op >= 1 ? 1 : op - 0.1;
+      o.style.opacity = op >= 1 ? 1 : op - 0.1;
+      o.style.display = 'block';
 
-      el.style.display = 'block';
       if (op < opacity) {
         requestAnimationFrame(fade);
       } else {
@@ -111,21 +111,21 @@ class Zooom {
   }
 
   fadeOut() {
-    const el = document.getElementById(`${this.overlay}`);
+    const { opacity, overlay } = this;
 
-    let { opacity } = this;
 
     function fade() {
+      const o = document.getElementById(overlay);
       if (opacity > 0.1) {
-        opacity -= 0.1;
+        this.opacity -= 0.1;
       }
 
-      el.style.opacity = opacity;
-      if (opacity >= 0.1) {
+      o.style.opacity = this.opacity;
+      if (this.opacity >= 0.1) {
         requestAnimationFrame(fade);
       } else {
-        el.style.opacity = 0;
-        el.style.display = 'none';
+        o.style.opacity = 0;
+        o.style.display = 'none';
         cancelAnimationFrame(fade);
       }
     }
@@ -134,29 +134,29 @@ class Zooom {
 
   imageProperty() {
     return {
-      targetWidth: this.imageZooom.clientWidth,
-      targetHeight: this.imageZooom.clientHeight,
-      imageWidth: this.imageZooom.naturalWidth,
-      imageHeight: this.imageZooom.naturalHeight,
+      clientWidth: this.imageZooom.clientWidth,
+      clientHeight: this.imageZooom.clientHeight,
+      naturalWidth: this.imageZooom.naturalWidth,
+      naturalHeight: this.imageZooom.naturalHeight,
     };
   }
 
-  imageScale({ imageWidth, imageHeight, targetWidth, targetHeight }) {
+  imageScale({ naturalWidth, naturalHeight, clientWidth, clientHeight }) {
     const rect = this.imageZooom.getBoundingClientRect();
 
-    const maxScale = imageWidth / targetWidth;
+    const maxScale = naturalWidth / clientWidth;
     const winnerHeight = window.innerHeight;
     const cWidth = document.documentElement.clientWidth;
 
     const viewportHeight = winnerHeight - this.padding;
     const viewportWidth = cWidth - this.padding;
 
-    const imageApectRatio = imageWidth / imageHeight;
+    const imageApectRatio = naturalWidth / naturalHeight;
     const vieportAspectRatio = viewportWidth / viewportHeight;
 
     const imageCenter = {
-      x: rect.left + targetWidth / 2,
-      y: rect.top + targetHeight / 2
+      x: rect.left + clientWidth / 2,
+      y: rect.top + clientHeight / 2
     };
 
     const viewport = {
@@ -171,12 +171,12 @@ class Zooom {
 
     let imageScale = 1;
 
-    if (imageWidth < viewportWidth && imageHeight < viewportHeight) {
+    if (naturalWidth < viewportWidth && naturalHeight < viewportHeight) {
       imageScale = maxScale;
     } else if (imageApectRatio < vieportAspectRatio) {
-      imageScale = (viewportHeight / imageHeight) * maxScale;
+      imageScale = (viewportHeight / naturalHeight) * maxScale;
     } else {
-      imageScale = (viewportWidth / imageWidth) * maxScale;
+      imageScale = (viewportWidth / naturalWidth) * maxScale;
     }
 
     if (imageScale <= 1) {
@@ -185,7 +185,7 @@ class Zooom {
 
     this.imageZooom.setAttribute(
       'style',
-      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0);`,
+      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0);`
     );
   }
 }
