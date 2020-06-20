@@ -1,9 +1,9 @@
 class Zooom {
-  constructor(options) {
-    this.element = options.element;
-    this.padding = options.padding || 80;
-    this.zIndex = options.zIndex || 1;
-    this.animationTime = options.animationTime || 300;
+  constructor(className, { padding, zIndex, animationTime, cursor, overlay }) {
+    this.className = className;
+    this.padding = padding || 80;
+    this.zIndex = zIndex || 1;
+    this.animationTime = animationTime || 300;
     this.img = 'zooom-img';
     this.overlay = 'zooom-overlay';
     this.cursorIn = 'cursor: zoom-in;';
@@ -11,14 +11,14 @@ class Zooom {
     this.color = '#fff';
     this.opacity = 1;
 
-    if (options.cursor) {
-      this.cursorIn = `cursor: ${options.cursor.cursorIn};`;
-      this.cursorOut = `cursor: ${options.cursor.cursorOut};`;
+    if (cursor) {
+      this.cursorIn = `cursor: ${cursor.cursorIn};`;
+      this.cursorOut = `cursor: ${cursor.cursorOut};`;
     }
 
-    if (options.overlay) {
-      const opacity = Math.floor(options.overlay.opacity);
-      this.color = options.overlay.color;
+    if (overlay) {
+      const opacity = Math.floor(overlay.opacity);
+      this.color = overlay.color;
       this.opacity = opacity > 100 ? 1 : opacity / 100;
     }
 
@@ -26,7 +26,7 @@ class Zooom {
   }
 
   addEventImageInit() {
-    const imageList = document.querySelectorAll(`.${this.element}`);
+    const imageList = document.querySelectorAll(`.${this.className}`);
     for (let i = 0; i < imageList.length; i++) {
       imageList[i].addEventListener('click', (e) => {
         e.preventDefault();
@@ -42,7 +42,7 @@ class Zooom {
 
   createZoomStyle() {
     const css = document.createElement('style');
-    css.innerHTML = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTime}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
+    css.innerHTML = `.${this.className}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTime}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
 
     document.getElementsByTagName('head')[0].appendChild(css);
     this.ceateOverlayAndAdd();
@@ -112,7 +112,6 @@ class Zooom {
 
   fadeOut() {
     const { opacity, overlay } = this;
-
 
     function fade() {
       const o = document.getElementById(overlay);

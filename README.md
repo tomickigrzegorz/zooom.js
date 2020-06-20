@@ -36,7 +36,6 @@ npm run build
 
 props | type | default | require | description
 ---- | :-------: | :-------: | :--------: | -----------
-element | String |  | ✔ | Element to zoom class name
 animationTime | Number | `300` | | Animation speed in milliseconds
 padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
@@ -46,8 +45,7 @@ cursorIn / cursorOut | String | `zoom-in / zoom-out` |  | The cursor property sp
 
 ## Sample configuration
 ```javascript
-const options = {
-  element: 'img-zoom',
+new Zooom('.img-zoom', { // class or id
   padding: 80,
   zIndex: 9,
   animationTime: 300, // animation time in number
@@ -59,9 +57,7 @@ const options = {
     color: '#fff', // hex or color-name
     opacity: 80, // [10, 20, 34, ..., 100] maximum number 100
   },
-}
-
-new Zooom(options);
+});
 ```
 
 ## Browsers support
