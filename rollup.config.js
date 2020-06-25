@@ -20,7 +20,7 @@ export default {
       compilation_level: 'ADVANCED',
       externs: './sources/externs/externs.js'
     }),
-    banner('Zooom.js - the easiest way to enlarge a photo\n@version v<%= pkg.version %>\n@link <%= pkg.homepage %>\n@license <%= pkg.license %>'),
+    (PRODUCTION && banner('Zooom.js - the easiest way to enlarge a photo\n@version v<%= pkg.version %>\n@link <%= pkg.homepage %>\n@license <%= pkg.license %>')),
     copy({
       targets: [
         { src: './images/**/*', dest: 'docs/images' }
