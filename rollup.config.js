@@ -23,11 +23,10 @@ export default {
     banner('Zooom.js - the easiest way to enlarge a photo\n@version v<%= pkg.version %>\n@link <%= pkg.homepage %>\n@license <%= pkg.license %>'),
     copy({
       targets: [
-        { src: 'sources/index.html', dest: 'docs/' },
         { src: './images/**/*', dest: 'docs/images' }
       ]
     }),
-    (!PRODUCTION && serve({ open: true, contentBase: 'docs' })),
+    (!PRODUCTION && serve({ open: true, contentBase: ['./docs', './sources'] })),
     (!PRODUCTION && livereload())
   ]
 };

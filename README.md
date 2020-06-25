@@ -45,7 +45,7 @@ cursorIn / cursorOut | String | `zoom-in / zoom-out` |  | The cursor property sp
 
 ## Sample configuration
 ```javascript
-new Zooom('.img-zoom', { // class or id
+new Zooom('img-zoom', { // class or id
   padding: 80,
   zIndex: 9,
   animationTime: 300, // animation time in number
