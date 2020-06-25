@@ -3,7 +3,7 @@ var options = {};
 options.element;
 options.padding;
 options.zIndex;
-options.animationTiem;
+options.animationTime;
 options.cursor;
 options.cursor.cursorIn;
 options.cursor.cursorOut;
