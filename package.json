@@ -1,6 +1,6 @@
 {
   "name": "zooom",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "index.js",
   "description": "The easiest way to zooming a photo",
   "author": "Grzegorz Tomicki",
@@ -8,7 +8,7 @@
   "homepage": "https://github.com/tomik23/zooom.js",
   "scripts": {
     "build": "rollup --config --environment PRODUCTION",
-    "watch": "rollup --config --watch"
+    "watch": "rollup --config --watch --sourcemap"
   },
   "repository": {
     "type": "git",
