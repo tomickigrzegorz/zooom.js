@@ -4,7 +4,7 @@ class Zooom {
     this.padding = padding || 80;
     this.zIndex = zIndex || 1;
     this.animationTime = animationTime || 300;
-    this.img = 'zooom-img';
+    this.dataZoomed = 'data-zoomed';
     this.overlay = 'zooom-overlay';
     this.cursorIn = 'cursor: zoom-in;';
     this.cursorOut = 'cursor: zoom-out;';
@@ -23,56 +23,61 @@ class Zooom {
     }
 
     this.createZoomStyle();
+    this.setDefaultAttributeZoomed();
+  }
+
+  setDefaultAttributeZoomed() {
+    const zoomedElements = document.querySelectorAll(`.${this.className}`);
+    for (let i = 0; i < zoomedElements.length; i++) {
+      zoomedElements[i].setAttribute(this.dataZoomed, false);
+    }
   }
 
   addEventImageInit() {
-    const imageList = document.querySelectorAll(`.${this.className}`);
-    for (let i = 0; i < imageList.length; i++) {
-      imageList[i].addEventListener('click', (e) => {
-        e.preventDefault();
-        this.imageZooom = e.currentTarget;
+    document.addEventListener('click', (e) => {
+      e.preventDefault();
+      const { target } = e;
+
+      if (target.getAttribute(this.dataZoomed) === 'false') {
+        this.imageZooom = target;
         this.zooomInit();
-      });
-    }
-    this.overlayd.addEventListener('click', () => {
-      const zooomImg = document.querySelector(`.${this.img}`);
-      this.removeImageStyle(zooomImg);
+      } else if (target.getAttribute(this.dataZoomed) === 'true') {
+        this.removeImageStyle();
+      }
+      if (target.id === this.overlay) {
+        this.removeImageStyle();
+      }
+    });
+
+    window.addEventListener('scroll', () => {
+      const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
+      if (imagezooom) this.removeImageStyle();
     });
   }
 
   createZoomStyle() {
-    const css = document.createElement('style');
-    css.innerHTML = `.${this.className}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}.zooom-img{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: all ${this.animationTime}ms}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
+    const style = document.createElement('style');
+    const css = `.${this.className}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: transform ${this.animationTime}ms ease-in-out}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
 
-    document.getElementsByTagName('head')[0].appendChild(css);
+    style.innerHTML = css;
+    document.head.appendChild(style);
+
     this.ceateOverlayAndAdd();
   }
 
-  removeImageStyle(element) {
-    element.removeAttribute('style');
+  removeImageStyle() {
+    const elementZoomed = document.querySelector(`[${this.dataZoomed}="true"]`);
+    elementZoomed.removeAttribute('style');
     setTimeout(() => {
-      element.classList.remove(this.img);
+      elementZoomed.setAttribute(this.dataZoomed, false);
+      this.fadeOut();
     }, this.animationTime);
-
-    this.fadeOut();
   }
 
   zooomInit() {
-    const zooomImg = document.querySelector(`.${this.img}`);
-    if (zooomImg === null) {
-      this.imageZooom.classList.add(this.img);
-      this.imageScale(this.imageProperty());
-      this.fadeIn();
-    } else {
-      this.removeImageStyle(zooomImg);
-    }
-
-    window.addEventListener('scroll', () => {
-      const imagezooom = document.querySelector(`.${this.img}`);
-      if (imagezooom !== null) {
-        this.removeImageStyle(imagezooom);
-      }
-    });
+    this.imageZooom.setAttribute(this.dataZoomed, true);
+    this.imageScale(this.imageZooom);
+    this.fadeIn();
   }
 
   ceateOverlayAndAdd() {
@@ -92,14 +97,14 @@ class Zooom {
     const { opacity, overlay } = this;
 
     function fade() {
-      const o = document.getElementById(overlay);
+      const overlayElement = document.getElementById(overlay);
 
       if (op < opacity) {
         op += 0.1;
       }
 
-      o.style.opacity = op >= 1 ? 1 : op - 0.1;
-      o.style.display = 'block';
+      overlayElement.style.opacity = op >= 1 ? 1 : op - 0.1;
+      overlayElement.style.display = 'block';
 
       if (op < opacity) {
         requestAnimationFrame(fade);
@@ -112,36 +117,28 @@ class Zooom {
 
   fadeOut() {
     const { opacity, overlay } = this;
+    let op = opacity;
 
     function fade() {
-      const o = document.getElementById(overlay);
-      if (opacity > 0.1) {
-        this.opacity -= 0.1;
+      const overlayElement = document.getElementById(overlay);
+      if (op >= 0.1) {
+        op -= 0.9;
       }
 
-      o.style.opacity = this.opacity;
-      if (this.opacity >= 0.1) {
+      overlayElement.style.opacity = op;
+      if (op >= 0.1) {
         requestAnimationFrame(fade);
       } else {
-        o.style.opacity = 0;
-        o.style.display = 'none';
+        overlayElement.style.opacity = 0;
+        overlayElement.style.display = 'none';
         cancelAnimationFrame(fade);
       }
     }
     requestAnimationFrame(fade);
   }
 
-  imageProperty() {
-    return {
-      clientWidth: this.imageZooom.clientWidth,
-      clientHeight: this.imageZooom.clientHeight,
-      naturalWidth: this.imageZooom.naturalWidth,
-      naturalHeight: this.imageZooom.naturalHeight,
-    };
-  }
-
   imageScale({ naturalWidth, naturalHeight, clientWidth, clientHeight }) {
-    const rect = this.imageZooom.getBoundingClientRect();
+    const { left, top } = this.imageZooom.getBoundingClientRect();
 
     const maxScale = naturalWidth / clientWidth;
     const winnerHeight = window.innerHeight;
@@ -154,8 +151,8 @@ class Zooom {
     const vieportAspectRatio = viewportWidth / viewportHeight;
 
     const imageCenter = {
-      x: rect.left + clientWidth / 2,
-      y: rect.top + clientHeight / 2
+      x: left + clientWidth / 2,
+      y: top + clientHeight / 2
     };
 
     const viewport = {
