@@ -55,18 +55,18 @@
     </div>
 
     <script>
-      window.addEventListener('load', function () {
+      window.addEventListener('DOMContentLoaded', function () {
         new Zooom('img-zoom', {
           padding: 80,
           zIndex: 9,
-          animationTiem: 300, // animation time in number
+          animationTime: 300, // animation time in number
           cursor: {
             cursorIn: 'zoom-in',
             cursorOut: 'zoom-out'
           },
           overlay: {
             color: '#fff', // hex or color-name
-            opacity: 80, // [10, 20, 34, ..., 100] maximum number 100
+            opacity: 90, // [10, 20, 34, ..., 100] maximum number 100
           },
         });
       });
