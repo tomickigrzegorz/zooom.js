@@ -6,24 +6,34 @@ class Zooom {
     this.animationTime = animationTime || 300;
     this.dataZoomed = 'data-zoomed';
     this.overlay = 'zooom-overlay';
-    this.cursorIn = 'cursor: zoom-in;';
-    this.cursorOut = 'cursor: zoom-out;';
-    this.color = '#fff';
-    this.opacity = 1;
 
     if (cursor) {
-      this.cursorIn = `cursor: ${cursor.cursorIn};`;
-      this.cursorOut = `cursor: ${cursor.cursorOut};`;
+      this.cursorIn = `cursor: ${cursor.in};`;
+      this.cursorOut = `cursor: ${cursor.out};`;
+    } else {
+      this.cursorIn = 'cursor: zoom-in;';
+      this.cursorOut = 'cursor: zoom-out;';
     }
 
     if (overlay) {
       const opacity = Math.floor(overlay.opacity);
       this.color = overlay.color;
       this.opacity = opacity > 100 ? 1 : opacity / 100;
+    } else {
+      this.color = '#fff';
+      this.opacity = 1;
     }
 
+    this.initial();
+  }
+
+  initial() {
     this.createZoomStyle();
     this.setDefaultAttributeZoomed();
+    this.ceateOverlayAndAdd();
+
+    document.addEventListener('click', this.addEventImageInit.bind(this));
+    window.addEventListener('scroll', this.scrollHandler.bind(this));
   }
 
   setDefaultAttributeZoomed() {
@@ -33,36 +43,30 @@ class Zooom {
     }
   }
 
-  addEventImageInit() {
-    document.addEventListener('click', (e) => {
-      e.preventDefault();
-      const { target } = e;
+  addEventImageInit(event) {
+    event.preventDefault();
+    const { target } = event;
+    const dataZoomed = target.getAttribute(this.dataZoomed);
+    this.imageZooom = target;
 
-      if (target.getAttribute(this.dataZoomed) === 'false') {
-        this.imageZooom = target;
-        this.zooomInit();
-      } else if (target.getAttribute(this.dataZoomed) === 'true') {
-        this.removeImageStyle();
-      }
-      if (target.id === this.overlay) {
-        this.removeImageStyle();
-      }
-    });
+    if (dataZoomed === 'false') {
+      this.zooomInit();
+    } else if (dataZoomed === 'true' || target.id === this.overlay) {
+      this.removeImageStyle();
+    }
+  }
 
-    window.addEventListener('scroll', () => {
-      const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
-      if (imagezooom) this.removeImageStyle();
-    });
+  scrollHandler() {
+    const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
+    if (imagezooom) this.removeImageStyle();
   }
 
   createZoomStyle() {
     const style = document.createElement('style');
     const css = `.${this.className}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: transform ${this.animationTime}ms ease-in-out}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
 
-    style.innerHTML = css;
+    style.appendChild(document.createTextNode(css));
     document.head.appendChild(style);
-
-    this.ceateOverlayAndAdd();
   }
 
   removeImageStyle() {
@@ -88,22 +92,22 @@ class Zooom {
       `background-color: ${this.color}; display: none;`
     );
     document.body.appendChild(this.overlayd);
-
-    this.addEventImageInit();
   }
 
   fadeIn() {
     let op = 0;
     const { opacity, overlay } = this;
 
+    const fadeInTiem = this.animationTime / 10000;
+
     function fade() {
       const overlayElement = document.getElementById(overlay);
 
       if (op < opacity) {
-        op += 0.1;
+        op += fadeInTiem;
       }
 
-      overlayElement.style.opacity = op >= 1 ? 1 : op - 0.1;
+      overlayElement.style.opacity = op >= 1 ? 1 : op - fadeInTiem;
       overlayElement.style.display = 'block';
 
       if (op < opacity) {
@@ -122,7 +126,7 @@ class Zooom {
     function fade() {
       const overlayElement = document.getElementById(overlay);
       if (op >= 0.1) {
-        op -= 0.9;
+        op -= 1;
       }
 
       overlayElement.style.opacity = op;
