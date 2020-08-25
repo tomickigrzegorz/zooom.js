@@ -1,10 +1,20 @@
-## ZOOOM.JS
-A simple plugin for image zoooming without dependencies. Only pure javascipt. 
-Idea based on [zoom.js](https://github.com/fat/zoom.js)
+<h1 align=center>ZOOOM.JS</h1>
 
-### Demo
+<p align="center">
+  A simple plugin for image zoooming without dependencies. Only pure javascipt.
+</p>
 
-[Live DEMO](https://tomik23.github.io/zooom.js/)
+<p align="center">
+  <img src="https://img.shields.io/github/package-json/v/tomik23/zooom.js">
+  <img src="https://img.shields.io/github/size/tomik23/zooom.js/docs/zooom.min.js">
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg">
+  </a>
+</p>
+
+## Demo
+
+See the demo - [example](https://tomik23.github.io/zooom.js/)
 
 ## Clone the repo and install dependencies
 ```bash
@@ -41,7 +51,7 @@ padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
 opacity | Number | `100` |  | Overlay layer opacity, number must be an integer, maximum number 100
 zIndex | Number | `1` |  | Option to control layer positions
-cursorIn / cursorOut | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
+in / out | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 
 ## Sample configuration
 ```javascript
@@ -50,8 +60,8 @@ new Zooom('img-zoom', { // class name
   zIndex: 9,
   animationTime: 300, // animation time in number
   cursor: {
-    cursorIn: 'zoom-in',
-    cursorOut: 'zoom-out'
+    in: 'zoom-in',
+    out: 'zoom-out'
   },
   overlay: {
     color: '#fff', // hex or color-name
