@@ -48,7 +48,8 @@ class Zooom {
     this.createStyleOverlay('on');
     this.createStyleOverlay('off');
 
-    document.addEventListener('click', this.addEventImageInit.bind(this));
+
+    document.addEventListener('click', this.addEventImageInit.bind(this), false);
     window.addEventListener('scroll', this.scrollHandler.bind(this));
 
     const removeimgstyle = this.debounce(this.removeImgStyle.bind(this), 100);
@@ -77,9 +78,10 @@ class Zooom {
   addEventImageInit(event) {
     event.preventDefault();
     const { target } = event;
+    if (!target.classList.contains(this.className)) return;
+
     const dataZoomed = target.getAttribute(this.dataZoomed);
     this.imageZooom = target;
-
     if (dataZoomed === 'false') {
       this.zooomInit();
     } else if (dataZoomed === 'true' || target.id === this.overlay) {
