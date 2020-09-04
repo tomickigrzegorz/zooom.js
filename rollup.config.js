@@ -1,6 +1,8 @@
 import copy from 'rollup-plugin-copy';
 import banner from 'rollup-plugin-banner';
 import babel from '@rollup/plugin-babel';
+import serve from 'rollup-plugin-serve';
+import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import pkg from "./package.json";
 
@@ -25,6 +27,8 @@ export default {
       targets: [
         { src: './images/**/*', dest: 'docs/images' }
       ]
-    })
+    }),
+    !PRODUCTION && serve({ open: true, contentBase: 'docs' }),
+    !PRODUCTION && livereload(),
   ]
 };
