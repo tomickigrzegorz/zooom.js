@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./github-corner.js"></script>
     <link rel="stylesheet" href="./style.css">
     <title>Zooom</title>
   </head>
@@ -49,14 +50,14 @@
         new Zooom('img-zoom', {
           padding: 80,
           zIndex: 9,
-          animationTime: 300, // animation time in number
+          animationTime: 400, // animation time in number
           cursor: {
             in: 'zoom-in',
             out: 'zoom-out'
           },
           overlay: {
             color: '#fff', // hex or color-name
-            opacity: 70, // [10, 20, 34, ..., 100] maximum number 100
+            opacity: 80, // [10, 20, 34, ..., 100] maximum number 100
           },
           onLoaded: function (element) {
             const nextSibling = element.nextElementSibling;
@@ -71,10 +72,10 @@
                 document.body.insertAdjacentElement('beforeend', el);
               }
               if (descriptionText) {
-                descriptionText.classList.remove('animation-off');
-                descriptionText.classList.add('animation-on');
                 descriptionText.innerHTML = '';
                 descriptionText.innerHTML = textContent;
+                descriptionText.classList.remove('animation-off');
+                descriptionText.classList.add('animation-on');
               }
             }
           },
