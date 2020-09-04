@@ -51,9 +51,9 @@ padding | Number | `80` |  | Padding added to image
 color | String | `#fff` |  | Overlay layer color, hex only
 opacity | Number | `100` |  | Overlay layer opacity, number must be an integer, maximum number 100
 zIndex | Number | `1` |  | Option to control layer positions
+in / out | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 onLoaded | Function |  |  | A helper function with which we can, for example, add text from the caption to the photo to show when zooming in on the photo. In the function we have access to the image element
 onCleared | Function |  |  | A function that runs when the photo is closed. It can be combined with the function `onLoaded` see example. As in the previous `onLoaded` function, here we have access to the image element
-in / out | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 
 ## Sample configuration
 ```javascript
