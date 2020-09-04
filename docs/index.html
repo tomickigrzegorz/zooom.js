@@ -5,53 +5,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./style.css">
     <title>Zooom</title>
-    <style>
-      .container {
-        position: relative;
-        max-width: 800px;
-        margin: auto;
-        padding: 20px;
-      }
-
-      .row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 5px;
-      }
-
-      .responsive {
-        width: 100%;
-        height: auto;
-      }
-    </style>
   </head>
 
   <body>
     <div class="container">
-      <div class="item">
+      <figure>
         <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_01.jpg">
-      </div>
-      <div class="item">
+        <figcaption class="description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero pariatur minima
+          quo, at quod deleniti!
+          Inventore totam voluptatem ad, placeat tenetur nesciunt aperiam distinctio, commodi hic ducimus eum
+          necessitatibus vel!</figcaption>
+      </figure>
+      <figure>
         <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_02.jpg">
-      </div>
+        <figcaption class="description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit nostrum animi
+          possimus dignissimos a
+          eveniet in impedit eligendi dolor mollitia voluptates delectus cupiditate quo, molestiae aut fugiat sint et
+          facilis!</figcaption>
+      </figure>
       <div class="row">
-        <div class="one-half column">
+        <figure>
           <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_03.jpg">
-        </div>
-        <div class="one-half column">
+        </figure>
+        <figure>
           <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_04.jpg">
-        </div>
+        </figure>
       </div>
-      <div class="item">
+      <figure>
         <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_05.jpg">
-      </div>
-      <div class="item">
+      </figure>
+      <figure>
         <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_06.jpg">
-      </div>
-      <div class="item">
+      </figure>
+      <figure>
         <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_07.jpg">
-      </div>
+      </figure>
     </div>
 
     <script>
@@ -68,6 +58,31 @@
             color: '#fff', // hex or color-name
             opacity: 70, // [10, 20, 34, ..., 100] maximum number 100
           },
+          onLoaded: function (element) {
+            const nextSibling = element.nextElementSibling;
+            if (nextSibling && nextSibling.classList.contains('description')) {
+              const textContent = nextSibling.innerHTML;
+              const descriptionText = document.getElementById('description');
+              if (!descriptionText) {
+                const el = document.createElement('div');
+                el.id = 'description';
+                el.classList = 'animation-on';
+                el.innerHTML = textContent;
+                document.body.insertAdjacentElement('beforeend', el);
+              }
+              if (descriptionText) {
+                descriptionText.classList.remove('animation-off');
+                descriptionText.classList.add('animation-on');
+                descriptionText.innerHTML = '';
+                descriptionText.innerHTML = textContent;
+              }
+            }
+          },
+          onCleared: function (element) {
+            const descriptionText = document.getElementById('description');
+            descriptionText.classList.remove('animation-on');
+            descriptionText.classList.add('animation-off');
+          }
         });
       });
     </script>
