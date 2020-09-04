@@ -1,11 +1,24 @@
 class Zooom {
-  constructor(className, { padding, zIndex, animationTime, cursor, overlay }) {
+  constructor(
+    className,
+    {
+      padding,
+      zIndex,
+      animationTime,
+      cursor,
+      overlay,
+      onLoaded = () => { },
+      onCleared = () => { }
+    }
+  ) {
     this.className = className;
     this.padding = padding || 80;
     this.zIndex = zIndex || 1;
     this.animationTime = animationTime || 300;
     this.dataZoomed = 'data-zoomed';
     this.overlay = 'zooom-overlay';
+    this.onLoaded = onLoaded;
+    this.onCleared = onCleared;
 
     if (cursor) {
       this.cursorIn = `cursor: ${cursor.in};`;
@@ -29,18 +42,34 @@ class Zooom {
 
   initial() {
     this.createZoomStyle();
-    this.setDefaultAttributeZoomed();
-    this.ceateOverlayAndAdd();
+    this.setDefaultAttr();
+    this.ceateOverlay();
 
     document.addEventListener('click', this.addEventImageInit.bind(this));
+
     window.addEventListener('scroll', this.scrollHandler.bind(this));
+
+    const removeimgstyle = this.debounce(this.removeImgStyle.bind(this), 100);
+    window.addEventListener('resize', removeimgstyle);
   }
 
-  setDefaultAttributeZoomed() {
+  setDefaultAttr() {
     const zoomedElements = document.querySelectorAll(`.${this.className}`);
     for (let i = 0; i < zoomedElements.length; i++) {
       zoomedElements[i].setAttribute(this.dataZoomed, false);
     }
+  }
+
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        timeout = null;
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
   }
 
   addEventImageInit(event) {
@@ -52,13 +81,13 @@ class Zooom {
     if (dataZoomed === 'false') {
       this.zooomInit();
     } else if (dataZoomed === 'true' || target.id === this.overlay) {
-      this.removeImageStyle();
+      this.removeImgStyle();
     }
   }
 
   scrollHandler() {
     const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
-    if (imagezooom) this.removeImageStyle();
+    if (imagezooom) this.removeImgStyle();
   }
 
   createZoomStyle() {
@@ -69,22 +98,26 @@ class Zooom {
     document.head.appendChild(style);
   }
 
-  removeImageStyle() {
+  removeImgStyle() {
     const elementZoomed = document.querySelector(`[${this.dataZoomed}="true"]`);
+    if (!elementZoomed) return;
     elementZoomed.removeAttribute('style');
     setTimeout(() => {
       elementZoomed.setAttribute(this.dataZoomed, false);
       this.fadeOut();
     }, this.animationTime);
+
+    this.onCleared(this.imageZooom);
   }
 
   zooomInit() {
     this.imageZooom.setAttribute(this.dataZoomed, true);
     this.imageScale(this.imageZooom);
     this.fadeIn();
+    this.onLoaded(this.imageZooom);
   }
 
-  ceateOverlayAndAdd() {
+  ceateOverlay() {
     this.overlayd = document.createElement('div');
     this.overlayd.id = this.overlay;
     this.overlayd.setAttribute(
@@ -125,8 +158,8 @@ class Zooom {
 
     function fade() {
       const overlayElement = document.getElementById(overlay);
-      if (op >= 0.1) {
-        op -= 1;
+      if (op > 0) {
+        op -= 0.1;
       }
 
       overlayElement.style.opacity = op;
