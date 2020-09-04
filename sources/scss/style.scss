@@ -5,7 +5,7 @@
 :before {
   box-sizing: border-box;
   padding: 0;
-  margin: 0
+  margin: 0;
 }
 
 body {
@@ -16,6 +16,14 @@ body {
 
 figcaption {
   padding: 5px 0 10px;
+}
+
+.github-corner {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
 }
 
 .container {
