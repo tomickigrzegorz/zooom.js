@@ -14,6 +14,10 @@ body {
   background: #fbfbfb;
 }
 
+figcaption {
+  padding: 5px 0 10px;
+}
+
 .container {
   position: relative;
   max-width: 800px;
@@ -32,6 +36,14 @@ body {
   height: auto;
 }
 
+[data-visible="true"] {
+  display: block;
+}
+
+[data-visible="false"] {
+  display: none;
+}
+
 #description {
   position: fixed;
   bottom: 0;
@@ -45,10 +57,16 @@ body {
 }
 
 .animation-on {
-  animation: opacity 500ms ease;
+  -webkit-animation: animation-on 300ms ease;
+  animation: animation-on 300ms ease;
 }
 
-@keyframes opacity {
+.animation-off {
+  -webkit-animation: animation-off 300ms ease forwards;
+  animation: animation-off 300ms ease forwards;
+}
+
+@-webkit-keyframes animation-on {
   from {
     opacity: 0;
   }
@@ -58,8 +76,24 @@ body {
   }
 }
 
-.animation-off {
-  animation: animation-off 1s ease forwards;
+@keyframes animation-on {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes animation-off {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes animation-off {
@@ -70,8 +104,4 @@ body {
   to {
     opacity: 0;
   }
-}
-
-figcaption {
-  padding: 5px 0 10px;
 }
