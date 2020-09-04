@@ -1,11 +1,24 @@
 class Zooom {
-  constructor(className, { padding, zIndex, animationTime, cursor, overlay }) {
+  constructor(
+    className,
+    {
+      padding,
+      zIndex,
+      animationTime,
+      cursor,
+      overlay,
+      onLoaded = () => { },
+      onCleared = () => { }
+    }
+  ) {
     this.className = className;
     this.padding = padding || 80;
     this.zIndex = zIndex || 1;
     this.animationTime = animationTime || 300;
     this.dataZoomed = 'data-zoomed';
     this.overlay = 'zooom-overlay';
+    this.onLoaded = onLoaded;
+    this.onCleared = onCleared;
 
     if (cursor) {
       this.cursorIn = `cursor: ${cursor.in};`;
@@ -29,18 +42,36 @@ class Zooom {
 
   initial() {
     this.createZoomStyle();
-    this.setDefaultAttributeZoomed();
-    this.ceateOverlayAndAdd();
+    this.setDefaultAttr();
+    this.ceateOverlay();
+
+    this.createStyleOverlay('on');
+    this.createStyleOverlay('off');
 
     document.addEventListener('click', this.addEventImageInit.bind(this));
     window.addEventListener('scroll', this.scrollHandler.bind(this));
+
+    const removeimgstyle = this.debounce(this.removeImgStyle.bind(this), 100);
+    window.addEventListener('resize', removeimgstyle);
   }
 
-  setDefaultAttributeZoomed() {
+  setDefaultAttr() {
     const zoomedElements = document.querySelectorAll(`.${this.className}`);
     for (let i = 0; i < zoomedElements.length; i++) {
       zoomedElements[i].setAttribute(this.dataZoomed, false);
     }
+  }
+
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        timeout = null;
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
   }
 
   addEventImageInit(event) {
@@ -52,93 +83,69 @@ class Zooom {
     if (dataZoomed === 'false') {
       this.zooomInit();
     } else if (dataZoomed === 'true' || target.id === this.overlay) {
-      this.removeImageStyle();
+      this.removeImgStyle();
     }
   }
 
   scrollHandler() {
     const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
-    if (imagezooom) this.removeImageStyle();
+    if (!imagezooom) return;
+    this.removeImgStyle();
   }
 
   createZoomStyle() {
-    const style = document.createElement('style');
     const css = `.${this.className}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: transform ${this.animationTime}ms ease-in-out}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
 
+    this.createStyle(css);
+  }
+
+  createStyle(css) {
+    const style = document.createElement('style');
     style.appendChild(document.createTextNode(css));
     document.head.appendChild(style);
   }
 
-  removeImageStyle() {
+  removeImgStyle() {
     const elementZoomed = document.querySelector(`[${this.dataZoomed}="true"]`);
+    if (!elementZoomed) return;
     elementZoomed.removeAttribute('style');
+
     setTimeout(() => {
       elementZoomed.setAttribute(this.dataZoomed, false);
-      this.fadeOut();
     }, this.animationTime);
+    this.onCleared(this.imageZooom);
+    this.fadeOut();
   }
 
   zooomInit() {
     this.imageZooom.setAttribute(this.dataZoomed, true);
     this.imageScale(this.imageZooom);
+    this.onLoaded(this.imageZooom);
     this.fadeIn();
   }
 
-  ceateOverlayAndAdd() {
+  ceateOverlay() {
     this.overlayd = document.createElement('div');
     this.overlayd.id = this.overlay;
-    this.overlayd.setAttribute(
-      'style',
-      `background-color: ${this.color}; display: none;`
-    );
+    this.overlayd.setAttribute('data-visible', false);
     document.body.appendChild(this.overlayd);
   }
 
   fadeIn() {
-    let op = 0;
-    const { opacity, overlay } = this;
-
-    const fadeInTiem = this.animationTime / 10000;
-
-    function fade() {
-      const overlayElement = document.getElementById(overlay);
-
-      if (op < opacity) {
-        op += fadeInTiem;
-      }
-
-      overlayElement.style.opacity = op >= 1 ? 1 : op - fadeInTiem;
-      overlayElement.style.display = 'block';
-
-      if (op < opacity) {
-        requestAnimationFrame(fade);
-      } else {
-        cancelAnimationFrame(fade);
-      }
-    }
-    requestAnimationFrame(fade);
+    this.overlayd.className = 'zooom-overlay-on';
+    this.overlayd.setAttribute('data-visible', true);
   }
 
   fadeOut() {
-    const { opacity, overlay } = this;
-    let op = opacity;
+    this.overlayd.className = 'zooom-overlay-off';
+    setTimeout(() => {
+      this.overlayd.setAttribute('data-visible', false);
+    }, this.animationTime);
+  }
 
-    function fade() {
-      const overlayElement = document.getElementById(overlay);
-      if (op >= 0.1) {
-        op -= 1;
-      }
-
-      overlayElement.style.opacity = op;
-      if (op >= 0.1) {
-        requestAnimationFrame(fade);
-      } else {
-        overlayElement.style.opacity = 0;
-        overlayElement.style.display = 'none';
-        cancelAnimationFrame(fade);
-      }
-    }
-    requestAnimationFrame(fade);
+  createStyleOverlay(type) {
+    const css = `.zooom-overlay-${type}{-webkit-animation:show-${type} ${this.animationTime}ms ease forwards;animation:show-${type} ${this.animationTime}ms ease forwards;background-color:rgb(255, 255, 255);}@keyframes show-${type}{ from{opacity:${type === 'off' ? this.opacity : 0};}to{opacity:${type === 'off' ? 0 : this.opacity} }}@-webkit-keyframes show-${type}{ from{opacity:${type === 'off' ? this.opacity : 0};}to{opacity:${type === 'off' ? 0 : this.opacity} }}`;
+    this.createStyle(css);
   }
 
   imageScale({ naturalWidth, naturalHeight, clientWidth, clientHeight }) {
@@ -185,7 +192,7 @@ class Zooom {
 
     this.imageZooom.setAttribute(
       'style',
-      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0);`
+      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0); `
     );
   }
 }
