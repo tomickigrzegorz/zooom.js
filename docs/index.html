@@ -81,8 +81,10 @@
           },
           onCleared: function (element) {
             const descriptionText = document.getElementById('description');
-            descriptionText.classList.remove('animation-on');
-            descriptionText.classList.add('animation-off');
+            if (descriptionText) {
+              descriptionText.classList.remove('animation-on');
+              descriptionText.classList.add('animation-off');
+            }
           }
         });
       });
