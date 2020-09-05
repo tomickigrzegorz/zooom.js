@@ -76,9 +76,7 @@ class Zooom {
   }
 
   addEventImageInit(event) {
-    event.preventDefault();
     const { target } = event;
-    if (!target.classList.contains(this.className)) return;
 
     const dataZoomed = target.getAttribute(this.dataZoomed);
     this.imageZooom = target;
