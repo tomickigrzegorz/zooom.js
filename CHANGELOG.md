@@ -1,4 +1,8 @@
-## 2020-09-04 (v1.0.6)
+## 2020-09-07 (v1.0.7)
+### Changed
+- Lightbox animation not always appearing [#15](https://github.com/tomik23/zooom.js/issues/15)
+
+## 2020-09-06 (v1.0.6)
 ### Added
 - debounce to resize window
 - two helpers functions `onLoaded`, `onCleared`
