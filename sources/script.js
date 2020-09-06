@@ -40,32 +40,31 @@ class Zooom {
     this.initial();
   }
 
-  initial() {
+  initial = () => {
     this.createZoomStyle();
-    this.setDefaultAttr();
     this.ceateOverlay();
+    this.setDefaultAttr();
 
-    this.createStyleOverlay('on');
-    this.createStyleOverlay('off');
+    this.createStyleOverlay('in');
+    this.createStyleOverlay('out');
 
+    document.addEventListener('click', this.handleClick, false);
+    window.addEventListener('scroll', this.handleScroll, false);
 
-    document.addEventListener('click', this.addEventImageInit.bind(this), false);
-    window.addEventListener('scroll', this.scrollHandler.bind(this));
-
-    const removeimgstyle = this.debounce(this.removeImgStyle.bind(this), 100);
-    window.addEventListener('resize', removeimgstyle);
+    const handleresize = this.debounce(this.handleResize, 100);
+    window.addEventListener('resize', handleresize);
   }
 
-  setDefaultAttr() {
+  setDefaultAttr = () => {
     const zoomedElements = document.querySelectorAll(`.${this.className}`);
     for (let i = 0; i < zoomedElements.length; i++) {
       zoomedElements[i].setAttribute(this.dataZoomed, false);
     }
   }
 
-  debounce(func, wait) {
+  debounce = (func, wait) => {
     let timeout;
-    return function executedFunction(...args) {
+    return function exFunction(...args) {
       const later = () => {
         timeout = null;
         func(...args);
@@ -75,80 +74,81 @@ class Zooom {
     };
   }
 
-  addEventImageInit(event) {
+  handleClick = (event) => {
     const { target } = event;
-
     const dataZoomed = target.getAttribute(this.dataZoomed);
     this.imageZooom = target;
     if (dataZoomed === 'false') {
       this.zooomInit();
     } else if (dataZoomed === 'true' || target.id === this.overlay) {
-      this.removeImgStyle();
+      this.handleResize();
     }
   }
 
-  scrollHandler() {
+  handleScroll = (event) => {
     const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
     if (!imagezooom) return;
-    this.removeImgStyle();
+    this.handleResize();
   }
 
-  createZoomStyle() {
-    const css = `.${this.className}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{position:relative;z-index:${this.zIndex + 9};${this.cursorOut}transition: transform ${this.animationTime}ms ease-in-out}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:${this.zIndex};${this.cursorOut}}`;
-
-    this.createStyle(css);
-  }
-
-  createStyle(css) {
-    const style = document.createElement('style');
-    style.appendChild(document.createTextNode(css));
-    document.head.appendChild(style);
-  }
-
-  removeImgStyle() {
+  handleResize = () => {
     const elementZoomed = document.querySelector(`[${this.dataZoomed}="true"]`);
     if (!elementZoomed) return;
     elementZoomed.removeAttribute('style');
 
     setTimeout(() => {
-      elementZoomed.setAttribute(this.dataZoomed, false);
+      elementZoomed.setAttribute(this.dataZoomed, 'false');
     }, this.animationTime);
     this.onCleared(this.imageZooom);
     this.fadeOut();
   }
 
-  zooomInit() {
-    this.imageZooom.setAttribute(this.dataZoomed, true);
-    this.imageScale(this.imageZooom);
-    this.onLoaded(this.imageZooom);
-    this.fadeIn();
-  }
-
-  ceateOverlay() {
-    this.overlayd = document.createElement('div');
-    this.overlayd.id = this.overlay;
-    this.overlayd.setAttribute('data-visible', false);
-    document.body.appendChild(this.overlayd);
-  }
-
-  fadeIn() {
-    this.overlayd.className = 'zooom-overlay-on';
-    this.overlayd.setAttribute('data-visible', true);
-  }
-
-  fadeOut() {
-    this.overlayd.className = 'zooom-overlay-off';
-    setTimeout(() => {
-      this.overlayd.setAttribute('data-visible', false);
-    }, this.animationTime);
-  }
-
-  createStyleOverlay(type) {
-    const css = `.zooom-overlay-${type}{-webkit-animation:show-${type} ${this.animationTime}ms ease forwards;animation:show-${type} ${this.animationTime}ms ease forwards;background-color:rgb(255, 255, 255);}@keyframes show-${type}{ from{opacity:${type === 'off' ? this.opacity : 0};}to{opacity:${type === 'off' ? 0 : this.opacity} }}@-webkit-keyframes show-${type}{ from{opacity:${type === 'off' ? this.opacity : 0};}to{opacity:${type === 'off' ? 0 : this.opacity} }}`;
+  createZoomStyle = () => {
+    const css = `.${this.className}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{${this.cursorOut}position:relative;z-index:${this.zIndex + 9};transition:transform ${this.animationTime}ms ease-in-out;}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background-color:${this.color};z-index:${this.zIndex};${this.cursorOut}}`;
     this.createStyle(css);
   }
 
-  imageScale({ naturalWidth, naturalHeight, clientWidth, clientHeight }) {
+  createStyle = (css) => {
+    const style = document.createElement('style');
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+  }
+
+  zooomInit = () => {
+    this.imageZooom.setAttribute(this.dataZoomed, 'true');
+    this.fadeIn();
+    this.imageScale(this.imageZooom);
+    this.onLoaded(this.imageZooom);
+  }
+
+  ceateOverlay = () => {
+    this.overlayd = document.createElement('div');
+    this.overlayd.id = this.overlay;
+    this.overlayd.style.display = 'none';
+    document.body.appendChild(this.overlayd);
+  }
+
+  fadeIn = () => {
+    this.overlayd.className = 'zooom-overlay-in';
+    this.overlayd.removeAttribute('style');
+  }
+
+  fadeOut = () => {
+    this.overlayd.classList.add('zooom-overlay-out');
+    setTimeout(() => {
+      this.overlayd.classList.remove('zooom-overlay-in');
+      this.overlayd.style.display = 'none';
+    }, this.animationTime);
+  }
+
+  createStyleOverlay = (type) => {
+    const from = type == 'in' ? 0 : this.opacity;
+    const to = type == 'in' ? this.opacity : 0;
+    const css = `.zooom-overlay-${type}{-webkit-animation: show-${type} ${this.animationTime}ms ease-${type} forwards;animation: show-${type} ${this.animationTime}ms ease-${type} forwards;}@keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}@-webkit-keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}`;
+    this.createStyle(css);
+  }
+
+  imageScale = ({ naturalWidth, naturalHeight, clientWidth, clientHeight }) => {
     const { left, top } = this.imageZooom.getBoundingClientRect();
 
     const maxScale = naturalWidth / clientWidth;
@@ -192,7 +192,7 @@ class Zooom {
 
     this.imageZooom.setAttribute(
       'style',
-      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0); `
+      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0);`
     );
   }
 }
