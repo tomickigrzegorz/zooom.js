@@ -44,14 +44,6 @@ figcaption {
   height: auto;
 }
 
-[data-visible="true"] {
-  display: block;
-}
-
-[data-visible="false"] {
-  display: none;
-}
-
 #description {
   position: fixed;
   bottom: 0;
@@ -67,13 +59,11 @@ figcaption {
 .animation-on {
   -webkit-animation: animation-on 300ms ease;
   animation: animation-on 300ms ease;
-  display: block;
 }
 
 .animation-off {
   -webkit-animation: animation-off 300ms ease forwards;
   animation: animation-off 300ms ease forwards;
-  display: none;
 }
 
 @-webkit-keyframes animation-on {
