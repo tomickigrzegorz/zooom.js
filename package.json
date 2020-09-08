@@ -1,6 +1,6 @@
 {
   "name": "zooom",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "The easiest way to zooming a photo",
   "main": "docs/zooom.min.js",
   "author": "Grzegorz Tomicki",
