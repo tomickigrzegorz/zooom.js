@@ -12,6 +12,8 @@ body {
   position: relative;
   font-family: Lato, sans-serif;
   background: #fbfbfb;
+  text-rendering: optimizeLegibility;
+  font-size: calc(13px + .25vw);
 }
 
 figcaption {
@@ -37,6 +39,7 @@ figcaption {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5px;
+  margin: 2px auto;
 }
 
 .responsive {
@@ -54,16 +57,22 @@ figcaption {
   text-align: center;
   z-index: 20;
   left: 0;
+
+  a {
+    color: #fff;
+  }
 }
 
 .animation-on {
   -webkit-animation: animation-on 300ms ease;
   animation: animation-on 300ms ease;
+  display: block;
 }
 
 .animation-off {
   -webkit-animation: animation-off 300ms ease forwards;
   animation: animation-off 300ms ease forwards;
+  display: none;
 }
 
 @-webkit-keyframes animation-on {
