@@ -18,7 +18,7 @@ See the demo - [example](https://tomik23.github.io/zooom.js/)
 
 ## Clone the repo and install dependencies
 ```bash
-git clone
+git clone https://github.com/tomik23/zooom.js.git
 cd zooom
 yarn
 # or
