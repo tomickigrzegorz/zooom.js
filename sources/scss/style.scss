@@ -59,11 +59,13 @@ figcaption {
 .animation-on {
   -webkit-animation: animation-on 300ms ease;
   animation: animation-on 300ms ease;
+  display: block;
 }
 
 .animation-off {
   -webkit-animation: animation-off 300ms ease forwards;
   animation: animation-off 300ms ease forwards;
+  display: none;
 }
 
 @-webkit-keyframes animation-on {
