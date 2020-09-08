@@ -57,21 +57,34 @@ onCleared | Function |  |  | A function that runs when the photo is closed. It c
 
 ## Sample configuration
 ```javascript
-new Zooom('img-zoom', { // class name
+// class name
+new Zooom('img-zoom', {
+  // padding added to the photo
   padding: 80,
   zIndex: 9,
-  animationTime: 300, // animation time in number
+  // animation time in number
+  animationTime: 300,
+  // cursor type
   cursor: {
     in: 'zoom-in',
     out: 'zoom-out'
   },
   overlay: {
-    color: '#fff', // hex or color-name
-    opacity: 80, // [10, 20, 34, ..., 100] maximum number 100
+    // hex or color-name
+    color: '#fff',
+    // [10, 20, 34, ..., 100] maximum number 100
+    opacity: 80,
   },
-  onLoaded: function(element) {}, // see usage example docs/index.html
-  onCleared: function(element) {}, // see usage example docs/index.html
+  // callback function
+  // see usage example docs/index.html
+  onLoaded: function(element) {},
+  onCleared: function(element) {}
 });
+```
+
+## Minimal configuration
+```javascript
+new Zooom('img-zoom');
 ```
 
 ## Browsers support
