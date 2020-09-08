@@ -52,8 +52,8 @@ class Zooom {
 
   // set cursor type
   cursorType = (type: ObjectCursor) => {
-    this.cursorIn = `cursor: ${type.in === undefined ? 'zoom-in' : type.in};`;
-    this.cursorOut = `cursor: ${type.out === undefined ? 'zoom-out' : type.out};`;
+    this.cursorIn = `cursor: ${type === undefined ? 'zoom-in' : type.in};`;
+    this.cursorOut = `cursor: ${type === undefined ? 'zoom-out' : type.out};`;
   }
 
   initial = () => {
