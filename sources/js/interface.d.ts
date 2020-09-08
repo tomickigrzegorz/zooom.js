@@ -1,6 +1,3 @@
-/**
- * @interface ImageParameters
- */
 interface ImageParameters {
   naturalWidth: number,
   naturalHeight: number,
@@ -18,19 +15,11 @@ interface ConstructorObject {
   onCleared?: Function;
 }
 
-/**
- * @interface ObjectCursor
- * type of cursors
- */
 interface ObjectCursor {
   in?: string;
   out?: string;
 }
 
-/**
- * @interface ObjectOverlay
- * 
- */
 interface ObjectOverlay {
   color?: string;
   opacity?: number;

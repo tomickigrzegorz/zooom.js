@@ -1,18 +1,18 @@
 class Zooom {
-  element: string;
-  dataZoomed: string;
-  overlayZoomed: string;
-  imageZooom: any;
-  padding: number;
-  zIndex: number;
-  cursorIn?: string;
-  cursorOut?: string;
-  color?: string;
-  opacity?: number;
-  animTime?: number;
-  overlayEl: HTMLDivElement;
-  onLoaded: Function;
-  onCleared: Function;
+  private element: string;
+  private dataZoomed: string;
+  private overlayZoomed: string;
+  private imageZooom: any;
+  private padding: number;
+  private zIndex: number;
+  private cursorIn?: string;
+  private cursorOut?: string;
+  private color?: string;
+  private opacity?: number;
+  private animTime?: number;
+  private overlayEl: HTMLDivElement;
+  private onLoaded: Function;
+  private onCleared: Function;
 
   constructor(
     className: string,
@@ -240,8 +240,6 @@ class Zooom {
     } else {
       imageScale = (viewportWidth / naturalWidth) * maxScale;
     }
-
-    console.log(imageScale);
 
     // if (imageScale <= 1) {
     //   imageScale = 1;
