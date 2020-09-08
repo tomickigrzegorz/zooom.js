@@ -1,8 +1,12 @@
-## v1.0.8 (2020-09-08)
-### Changed
+## v1.0.8 (2020-09-09)
+### Added
 - New photos for example
+- Adding vertical photos
+- Example figure with picture
+
+### Changed
+- Removed padding
 - Converted to typescript
-- Fix: `padding` does not work when set to 0
 
 ## v1.0.7 (2020-09-07)
 ### Changed

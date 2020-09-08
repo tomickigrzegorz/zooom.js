@@ -6,7 +6,6 @@ interface ImageParameters {
 }
 
 interface ConstructorObject {
-  padding?: number;
   zIndex?: number;
   animationTime?: number;
   cursor?: Object<ObjectCursor>;

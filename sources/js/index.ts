@@ -3,7 +3,6 @@ class Zooom {
   private dataZoomed: string;
   private overlayZoomed: string;
   private imageZooom: any;
-  private padding: number;
   private zIndex: number;
   private cursorIn?: string;
   private cursorOut?: string;
@@ -17,7 +16,6 @@ class Zooom {
   constructor(
     className: string,
     {
-      padding,
       zIndex,
       animationTime,
       cursor,
@@ -28,7 +26,6 @@ class Zooom {
   ) {
 
     this.element = className;
-    this.padding = this.isNumber(padding, 80);
     this.animTime = this.isNumber(animationTime, 300);
     this.zIndex = this.isNumber(zIndex, 1);
     this.dataZoomed = 'data-zoomed';
@@ -166,49 +163,15 @@ class Zooom {
     this.createStyle(css);
   }
 
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent#Mobile_Device_Detection
-  // detectMobile() {
-  //   let hasTouchScreen = false;
-  //   if ('maxTouchPoints' in navigator) {
-  //     hasTouchScreen = window.navigator.maxTouchPoints > 0;
-  //   } else if ('msMaxTouchPoints' in navigator) {
-  //     hasTouchScreen = window.navigator.msMaxTouchPoints > 0;
-  //   } else {
-  //     var mQ = window.matchMedia && matchMedia('(pointer:coarse)');
-  //     if (mQ && mQ.media === '(pointer:coarse)') {
-  //       hasTouchScreen = !!mQ.matches;
-  //     } else if ('orientation' in window) {
-  //       hasTouchScreen = true; // deprecated, but good fallback
-  //     } else {
-  //       // Only as a last resort, fall back to user agent sniffing
-  //       var UA = window.navigator.userAgent;
-  //       hasTouchScreen =
-  //         /\b(BlackBerry|webOS|iPhone|IEMobile)\b/i.test(UA) ||
-  //         /\b(Android|Windows Phone|iPad|iPod)\b/i.test(UA);
-  //     }
-  //   }
-  //   return hasTouchScreen;
-  // }
-
-  // getPathWidth = () => {
-  //   return document.body
-  //     ? Math.max(document.body.scrollWidth, document.body.offsetWidth)
-  //     : 0;
-  // }
-
   imageScale = ({ naturalWidth, naturalHeight, clientWidth, clientHeight }: ImageParameters) => {
-    // const mobileBrowsers = (this.detectMobile() && this.getPathWidth() <= 1000) ? 0 : this.padding;
-    // const mobileBrowsers = (this.getPathWidth() >= 1000)
-    //   ? this.padding
-    //   : 0;
     const { left, top } = this.imageZooom.getBoundingClientRect();
 
     const maxScale = naturalWidth / clientWidth;
     const winnerHeight = window.innerHeight;
     const cWidth = document.documentElement.clientWidth;
 
-    const viewportHeight = winnerHeight - this.padding;
-    const viewportWidth = cWidth - this.padding;
+    const viewportHeight = winnerHeight;
+    const viewportWidth = cWidth;
 
     const imageApectRatio = naturalWidth / naturalHeight;
     const vieportAspectRatio = viewportWidth / viewportHeight;
@@ -237,10 +200,6 @@ class Zooom {
     } else {
       imageScale = (viewportWidth / naturalWidth) * maxScale;
     }
-
-    // if (imageScale <= 1) {
-    //   imageScale = 1;
-    // }
 
     this.imageZooom.setAttribute(
       'style',
