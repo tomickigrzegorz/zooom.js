@@ -18,7 +18,7 @@ See the demo - [example](https://tomik23.github.io/zooom.js/)
 
 ## Clone the repo and install dependencies
 ```bash
-git clone
+git clone https://github.com/tomik23/zooom.js.git
 cd zooom
 yarn
 # or
@@ -46,32 +46,42 @@ npm run prod
 
 props | type | default | require | description
 ---- | :-------: | :-------: | :--------: | -----------
+zIndex | Number | `1` |  | Option to control layer positions
 animationTime | Number | `300` | | Animation speed in milliseconds
-padding | Number | `80` |  | Padding added to image
+in / out | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 color | String | `#fff` |  | Overlay layer color, hex only
 opacity | Number | `100` |  | Overlay layer opacity, number must be an integer, maximum number 100
-zIndex | Number | `1` |  | Option to control layer positions
-in / out | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
 onLoaded | Function |  |  | A helper function with which we can, for example, add text from the caption to the photo to show when zooming in on the photo. In the function we have access to the image element
 onCleared | Function |  |  | A function that runs when the photo is closed. It can be combined with the function `onLoaded` see example. As in the previous `onLoaded` function, here we have access to the image element
 
 ## Sample configuration
 ```javascript
-new Zooom('img-zoom', { // class name
-  padding: 80,
+// class name
+new Zooom('img-zoom', {
   zIndex: 9,
-  animationTime: 300, // animation time in number
+  // animation time in number
+  animationTime: 300,
+  // cursor type
   cursor: {
     in: 'zoom-in',
     out: 'zoom-out'
   },
   overlay: {
-    color: '#fff', // hex or color-name
-    opacity: 80, // [10, 20, 34, ..., 100] maximum number 100
+    // hex or color-name
+    color: '#fff',
+    // [10, 20, 34, ..., 100] maximum number 100
+    opacity: 80,
   },
-  onLoaded: function(element) {}, // see usage example docs/index.html
-  onCleared: function(element) {}, // see usage example docs/index.html
+  // callback function
+  // see usage example docs/index.html
+  onLoaded: function(element) {},
+  onCleared: function(element) {}
 });
+```
+
+## Minimal configuration
+```javascript
+new Zooom('img-zoom');
 ```
 
 ## Browsers support
