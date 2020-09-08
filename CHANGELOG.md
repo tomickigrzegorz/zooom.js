@@ -1,7 +1,8 @@
 ## v1.0.8 (2020-09-08)
 ### Changed
-- new photos for example
-- converted to typescript
+- New photos for example
+- Converted to typescript
+- Fix: `padding` does not work when set to 0
 
 ## v1.0.7 (2020-09-07)
 ### Changed
@@ -9,13 +10,10 @@
 
 ## v1.0.6 (2020-09-06)
 ### Added
-- debounce to resize window
-- two helpers functions `onLoaded`, `onCleared`
-- changelog.md
+- Debounce to resize window
+- Two helpers functions `onLoaded`, `onCleared`
+- Changelog.md
 
 ### Changed
-- change fade(in/out) from js to css
-- refactoring rollup.config.js
-- update package.json
-- update readme.md
-- separate style
+- Change fade(in/out) from js to css
+- Separate style
