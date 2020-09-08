@@ -1,18 +1,18 @@
 class Zooom {
-  private element: string;
-  private dataZoomed: string;
-  private overlayZoomed: string;
-  private imageZooom: any;
-  private padding: number;
-  private zIndex: number;
-  private cursorIn?: string;
-  private cursorOut?: string;
-  private color?: string;
-  private opacity?: number;
-  private animTime?: number;
-  private overlayEl: HTMLDivElement;
-  private onLoaded: Function;
-  private onCleared: Function;
+  element: string;
+  dataZoomed: string;
+  overlayZoomed: string;
+  imageZooom: any;
+  padding: number;
+  zIndex: number;
+  cursorIn?: string;
+  cursorOut?: string;
+  color?: string;
+  opacity?: number;
+  animTime?: number;
+  overlayEl: HTMLDivElement;
+  onLoaded: Function;
+  onCleared: Function;
 
   constructor(
     className: string,
@@ -48,18 +48,15 @@ class Zooom {
     this.initial();
   }
 
-  overlayConfig = (over: ObjectOverlay) => {
-    const { color, opacity } = over;
-    this.color = color
-      ? color
-      : '#fff';
-    this.opacity = opacity ? Math.floor(opacity) > 100 ? 1 : Math.floor(opacity) / 100 : 1;
+  overlayConfig = ({ color, opacity }: ObjectOverlay = { color: '#fff', opacity: 100 }) => {
+    this.color = color;
+    this.opacity = opacity ? Math.floor(opacity) >= 100 ? 1 : Math.floor(opacity) / 100 : 1;
   }
 
   // set cursor type
   cursorType = (type: ObjectCursor) => {
-    this.cursorIn = `cursor: ${(type && type.in === undefined) ? 'zoom-in' : type.in};`;
-    this.cursorOut = `cursor: ${(type && type.out === undefined) ? 'zoom-out' : type.out};`;
+    this.cursorIn = `cursor: ${type.in === undefined ? 'zoom-in' : type.in};`;
+    this.cursorOut = `cursor: ${type.out === undefined ? 'zoom-out' : type.out};`;
   }
 
   initial = () => {
