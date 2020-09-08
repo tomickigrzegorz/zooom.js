@@ -65,10 +65,10 @@ class Zooom {
   initial = () => {
     this.headStyle();
     this.ceateOverlay();
-    this.setDefaultAttr();
+    this.setAttr();
 
-    this.styleOverlay('in');
-    this.styleOverlay('out');
+    this.overlayType('in');
+    this.overlayType('out');
 
     document.addEventListener('click', this.handleClick, false);
     window.addEventListener('scroll', this.handleEvent, false);
@@ -77,7 +77,7 @@ class Zooom {
     window.addEventListener('resize', handleresize);
   }
 
-  setDefaultAttr = () => {
+  setAttr = () => {
     const zoomedElements = document.querySelectorAll(`.${this.element}`);
     for (let i = 0; i < zoomedElements.length; i++) {
       zoomedElements[i].setAttribute(this.dataZoomed, 'false');
@@ -92,7 +92,7 @@ class Zooom {
 
   debounce = (func: any, wait: number) => {
     let timeout: any;
-    return function exFunction(...args: any[]) {
+    return function executedFunction(...args: any[]) {
       const later = () => {
         timeout = null;
         func(...args);
@@ -162,14 +162,48 @@ class Zooom {
     }, this.animTime);
   }
 
-  styleOverlay = (type: string) => {
+  overlayType = (type: string) => {
     const from = type == 'in' ? 0 : this.opacity;
     const to = type == 'in' ? this.opacity : 0;
     const css = `.zooom-overlay-${type}{-webkit-animation: show-${type} ${this.animTime}ms ease-${type} forwards;animation: show-${type} ${this.animTime}ms ease-${type} forwards;}@keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}@-webkit-keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}`;
     this.createStyle(css);
   }
 
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent#Mobile_Device_Detection
+  // detectMobile() {
+  //   let hasTouchScreen = false;
+  //   if ('maxTouchPoints' in navigator) {
+  //     hasTouchScreen = window.navigator.maxTouchPoints > 0;
+  //   } else if ('msMaxTouchPoints' in navigator) {
+  //     hasTouchScreen = window.navigator.msMaxTouchPoints > 0;
+  //   } else {
+  //     var mQ = window.matchMedia && matchMedia('(pointer:coarse)');
+  //     if (mQ && mQ.media === '(pointer:coarse)') {
+  //       hasTouchScreen = !!mQ.matches;
+  //     } else if ('orientation' in window) {
+  //       hasTouchScreen = true; // deprecated, but good fallback
+  //     } else {
+  //       // Only as a last resort, fall back to user agent sniffing
+  //       var UA = window.navigator.userAgent;
+  //       hasTouchScreen =
+  //         /\b(BlackBerry|webOS|iPhone|IEMobile)\b/i.test(UA) ||
+  //         /\b(Android|Windows Phone|iPad|iPod)\b/i.test(UA);
+  //     }
+  //   }
+  //   return hasTouchScreen;
+  // }
+
+  // getPathWidth = () => {
+  //   return document.body
+  //     ? Math.max(document.body.scrollWidth, document.body.offsetWidth)
+  //     : 0;
+  // }
+
   imageScale = ({ naturalWidth, naturalHeight, clientWidth, clientHeight }: ImageParameters) => {
+    // const mobileBrowsers = (this.detectMobile() && this.getPathWidth() <= 1000) ? 0 : this.padding;
+    // const mobileBrowsers = (this.getPathWidth() >= 1000)
+    //   ? this.padding
+    //   : 0;
     const { left, top } = this.imageZooom.getBoundingClientRect();
 
     const maxScale = naturalWidth / clientWidth;
@@ -207,9 +241,11 @@ class Zooom {
       imageScale = (viewportWidth / naturalWidth) * maxScale;
     }
 
-    if (imageScale <= 1) {
-      imageScale = 1;
-    }
+    console.log(imageScale);
+
+    // if (imageScale <= 1) {
+    //   imageScale = 1;
+    // }
 
     this.imageZooom.setAttribute(
       'style',

@@ -58,14 +58,16 @@
       <figure>
         <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_09.jpg">
         <figcaption class="description">Charlottenburg Palace (German: Schloss Charlottenburg) is a Baroque palace in
-          Berlin, located in Charlottenburg, a district of the Charlottenburg-Wilmersdorf borough. <a
-            href="https://en.wikipedia.org/wiki/Charlottenburg_Palace" target="_blank">[Wikipedia]</a></figcaption>
+          Berlin... <a href="https://en.wikipedia.org/wiki/Charlottenburg_Palace" target="_blank">[Wikipedia]</a>
+        </figcaption>
       </figure>
     </div>
 
     <script>
       window.addEventListener('DOMContentLoaded', function () {
         new Zooom('img-zoom', {
+          // padding added to image,
+          // off set to 0
           padding: 80,
           zIndex: 9,
           animationTime: 300, // animation time in number
@@ -74,8 +76,10 @@
             out: 'zoom-out'
           },
           overlay: {
-            color: '#fff', // hex or color-name
-            opacity: 80, // [10, 20, 34, ..., 100] maximum number 100
+            // hex or color-name
+            color: '#fff',
+            // [10, 20, 34, ..., 100] maximum number 100
+            opacity: 80,
           },
           onLoaded: function (element) {
             const nextSibling = element.nextElementSibling;
