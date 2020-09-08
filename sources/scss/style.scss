@@ -12,6 +12,8 @@ body {
   position: relative;
   font-family: Lato, sans-serif;
   background: #fbfbfb;
+  text-rendering: optimizeLegibility;
+  font-size: calc(13px + .25vw);
 }
 
 figcaption {
@@ -54,6 +56,10 @@ figcaption {
   text-align: center;
   z-index: 20;
   left: 0;
+
+  a {
+    color: #fff;
+  }
 }
 
 .animation-on {
