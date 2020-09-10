@@ -16,6 +16,26 @@
 
 See the demo - [example](https://tomik23.github.io/zooom.js/)
 
+## How to add to page
+1. Just download the library from the `docs/zoom.min.js` and `docs/style.css` folder and add it to head.
+```html
+<link rel="stylesheet" href="./style.css">
+<script src="./zooom.min.js"></script>
+```
+2. For each photo you want to grow, add a class in our example it's `img-zoom`
+```html
+<img class="img-zoom" src="./images/image.jpg">
+```
+3. Now all you have to do is call our library, this is the simplest example. Below you will find a description of how to configure the library more.
+```html
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    new Zooom('img-zoom');
+  });
+</script>
+```
+
+
 ## Clone the repo and install dependencies
 ```bash
 git clone https://github.com/tomik23/zooom.js.git
