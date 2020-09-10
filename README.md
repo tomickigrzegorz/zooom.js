@@ -17,9 +17,8 @@
 See the demo - [example](https://tomik23.github.io/zooom.js/)
 
 ## How to add to page
-1. Just download the library from the `docs/zoom.min.js` and `docs/style.css` folder and add it to head.
+1. Just download the library from the `docs/zoom.min.js` and add it to head.
 ```html
-<link rel="stylesheet" href="./style.css">
 <script src="./zooom.min.js"></script>
 ```
 2. For each photo you want to grow, add a class in our example it's `img-zoom`
