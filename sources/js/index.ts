@@ -24,7 +24,6 @@ class Zooom {
       onCleared = () => { }
     }: ConstructorObject = {}
   ) {
-
     this.element = className;
     this.animTime = this.isNumber(animationTime, 300);
     this.zIndex = this.isNumber(zIndex, 1);
@@ -51,21 +50,21 @@ class Zooom {
   }
 
   // set cursor type
-  cursorType = (type: ObjectCursor) => {
-    this.cursorIn = `cursor: ${type === undefined ? 'zoom-in' : type.in};`;
-    this.cursorOut = `cursor: ${type === undefined ? 'zoom-out' : type.out};`;
+  cursorType = ({ in: zIn, out: zOut }: ObjectCursor = { in: 'zoom-in', out: 'zoom-out' }) => {
+    this.cursorIn = `cursor: ${zIn}`;
+    this.cursorOut = `cursor: ${zOut};`;
   }
 
   initial = () => {
     this.headStyle();
-    this.ceateOverlay();
+    this.createOverlay();
     this.setAttr();
 
     this.overlayType('in');
     this.overlayType('out');
 
-    document.addEventListener('click', this.handleClick, false);
-    window.addEventListener('scroll', this.handleEvent, false);
+    document.addEventListener('click', this.handleClick);
+    window.addEventListener('scroll', this.handleEvent);
 
     const handleresize = this.debounce(this.handleEvent, 100);
     window.addEventListener('resize', handleresize);
@@ -78,7 +77,7 @@ class Zooom {
     }
   }
 
-  isNumber = (element: any, num: number) => {
+  isNumber = (element: number | undefined, num: number) => {
     return element === undefined
       ? num
       : typeof element === 'string' ? +element : element;
@@ -137,7 +136,7 @@ class Zooom {
     this.onLoaded(this.imageZooom);
   }
 
-  ceateOverlay = () => {
+  createOverlay = () => {
     this.overlayEl.id = this.overlayZoomed;
     this.overlayEl.style.display = 'none';
     document.body.appendChild(this.overlayEl);
