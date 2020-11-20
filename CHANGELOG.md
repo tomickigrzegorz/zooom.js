@@ -1,3 +1,11 @@
+## v1.0.9 (2020-11-20)
+### Added
+- UMD file
+- Renaming a variable
+- Banner from rollup.js
+### Changed
+- Removed banner plugin
+
 ## v1.0.8 (2020-09-09)
 ### Added
 - New photos for example
