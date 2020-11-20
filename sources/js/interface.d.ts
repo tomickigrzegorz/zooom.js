@@ -8,10 +8,10 @@ interface ImageParameters {
 interface ConstructorObject {
   zIndex?: number;
   animationTime?: number;
-  cursor?: Object<ObjectCursor>;
-  overlay?: Object<ObjectOverlay>;
-  onLoaded?: Function;
-  onCleared?: Function;
+  overlay?: ObjectOverlay;
+  cursor?: ObjectCursor;
+  onLoaded?: () => void;
+  onCleared?: () => void;
 }
 
 interface ObjectCursor {
