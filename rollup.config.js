@@ -49,6 +49,7 @@ export default [
   },
   {
     input: 'sources/js/index.ts',
+    watch: false,
     output: {
       file: pkg.browser,
       format: 'umd',
