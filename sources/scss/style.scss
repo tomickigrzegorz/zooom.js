@@ -16,6 +16,10 @@ body {
   font-size: calc(13px + .25vw);
 }
 
+section {
+  margin: 20px auto;
+}
+
 figcaption {
   padding: 5px 0 10px;
 }
@@ -35,11 +39,28 @@ picture {
     position: absolute;
     display: inline-block;
     content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M16.041 15.856a.995.995 0 00-.186.186A6.97 6.97 0 0111 18c-1.933 0-3.682-.782-4.95-2.05S4 12.933 4 11s.782-3.682 2.05-4.95S9.067 4 11 4s3.682.782 4.95 2.05S18 9.067 18 11a6.971 6.971 0 01-1.959 4.856zm5.666 4.437l-3.675-3.675A8.967 8.967 0 0020 11c0-2.485-1.008-4.736-2.636-6.364S13.485 2 11 2 6.264 3.008 4.636 4.636 2 8.515 2 11s1.008 4.736 2.636 6.364S8.515 20 11 20a8.967 8.967 0 005.618-1.968l3.675 3.675a.999.999 0 101.414-1.414zM8 12h2v2a1 1 0 002 0v-2h2a1 1 0 000-2h-2V8a1 1 0 00-2 0v2H8a1 1 0 000 2z'/%3E%3C/svg%3E");
-    z-index: 1;
-    width: 54px;
-    height: 54px;
+    z-index: 2;
+    width: 60px;
+    height: 60px;
     pointer-events: none;
   }
+
+  &:hover {
+    &:before {
+      opacity: .8;
+    }
+
+    &:after {
+      position: absolute;
+      content: "";
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+  }
+
 }
 
 .github-corner {
@@ -55,13 +76,6 @@ picture {
   max-width: 800px;
   margin: auto;
   padding: 20px;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
-  margin: 2px auto;
 }
 
 .responsive {
@@ -135,4 +149,38 @@ picture {
   to {
     opacity: 0;
   }
+}
+
+.overflow {
+  overflow: hidden;
+}
+
+.right {
+  max-width: 200px;
+  float: right;
+  padding-left: 10px;
+  display: inline-table;
+}
+
+.left {
+  max-width: 400px;
+  float: left;
+  padding-right: 10px;
+}
+
+.text {
+  text-align: justify;
+  margin: -5px -5px 20px -5px;
+  line-height: 1;
+}
+
+.single-word {
+  display: inline-block;
+  padding: 0 10px;
+  color: transparent;
+  background: #eeeeee;
+  margin: 5px;
+  border-radius: 3px;
+  letter-spacing: 2px;
+  user-select: none;
 }
