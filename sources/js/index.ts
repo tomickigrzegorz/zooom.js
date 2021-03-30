@@ -3,13 +3,14 @@ class Zooom {
   private dataZoomed: string;
   private overlayZoomed: string;
   private imageZooom: any;
+  private clonedImg: any;
   private zIndex: number;
   private cursorIn?: string;
   private cursorOut?: string;
   private color?: string;
   private opacity?: number;
   private animTime?: number;
-  private overlayEl: HTMLDivElement;
+  private overlay: HTMLDivElement;
   private onLoaded: Function;
   private onCleared: Function;
 
@@ -29,7 +30,7 @@ class Zooom {
     this.zIndex = this.isNumber(zIndex, 1);
     this.dataZoomed = 'data-zoomed';
     this.overlayZoomed = 'zooom-overlay';
-    this.overlayEl = document.createElement('div');
+    this.overlay = document.createElement('div');
 
     // callback function
     this.onLoaded = onLoaded;
@@ -63,11 +64,11 @@ class Zooom {
     this.overlayType('in');
     this.overlayType('out');
 
+    const debounce = this.debounce(this.handleEvent, 30);
+
     document.addEventListener('click', this.handleClick);
     window.addEventListener('scroll', this.handleEvent);
-
-    const handleresize = this.debounce(this.handleEvent, 100);
-    window.addEventListener('resize', handleresize);
+    window.addEventListener('resize', debounce);
   }
 
   setAttr = () => {
@@ -95,11 +96,12 @@ class Zooom {
     };
   }
 
-  handleClick = (event: { target: any; }) => {
+  handleClick = (event: any) => {
     const { target } = event;
     const dataZoomed = target.getAttribute(this.dataZoomed);
-    this.imageZooom = target;
+
     if (dataZoomed === 'false') {
+      this.imageZooom = target;
       this.zooomInit();
     } else if (dataZoomed === 'true' || target.id === this.overlayZoomed) {
       this.handleEvent();
@@ -108,12 +110,16 @@ class Zooom {
 
   handleEvent = () => {
     const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
+
     if (!imagezooom) return;
-    imagezooom.removeAttribute('style');
+
+    // reset all style
+    this.reset();
 
     setTimeout(() => {
       imagezooom.setAttribute(this.dataZoomed, 'false');
     }, this.animTime);
+    // callback function onCleared
     this.onCleared(this.imageZooom);
     this.fadeOut();
   }
@@ -131,79 +137,97 @@ class Zooom {
 
   zooomInit = () => {
     this.imageZooom.setAttribute(this.dataZoomed, 'true');
+
+    this.cloneImg(this.imageZooom);
+
     this.fadeIn();
-    this.imageScale(this.imageZooom);
+
+    // callback function
     this.onLoaded(this.imageZooom);
   }
 
   createOverlay = () => {
-    this.overlayEl.id = this.overlayZoomed;
-    this.overlayEl.style.display = 'none';
-    document.body.appendChild(this.overlayEl);
+    this.overlay.id = this.overlayZoomed;
+    this.overlay.style.display = 'none';
+    document.body.appendChild(this.overlay);
   }
 
   fadeIn = () => {
-    this.overlayEl.className = 'zooom-overlay-in';
-    this.overlayEl.removeAttribute('style');
+    this.overlay.className = 'zooom-overlay-in';
+    this.overlay.removeAttribute('style');
   }
 
   fadeOut = () => {
-    this.overlayEl.classList.add('zooom-overlay-out');
+    this.overlay.classList.add('zooom-overlay-out');
     setTimeout(() => {
-      this.overlayEl.classList.remove('zooom-overlay-in');
-      this.overlayEl.style.display = 'none';
+      this.overlay.classList.remove('zooom-overlay-in');
+      this.overlay.style.display = 'none';
     }, this.animTime);
   }
 
   overlayType = (type: string) => {
     const from = type == 'in' ? 0 : this.opacity;
     const to = type == 'in' ? this.opacity : 0;
-    const css = `.zooom-overlay-${type}{-webkit-animation: show-${type} ${this.animTime}ms ease-${type} forwards;animation: show-${type} ${this.animTime}ms ease-${type} forwards;}@keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}@-webkit-keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}`;
+    const css = `.zooom-overlay-${type}{-webkit-animation: show-${type} ${this.animTime}ms ease-${type} forwards;animation: show-${type} ${this.animTime}ms ease-${type} forwards;}@keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}@-webkit-keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}}`;
     this.createStyle(css);
   }
 
-  imageScale = ({ naturalWidth, naturalHeight, clientWidth, clientHeight }: ImageParameters) => {
-    const { left, top } = this.imageZooom.getBoundingClientRect();
+  cloneImg = (image: HTMLImageElement) => {
+    const src = image.currentSrc || image.src;
+    let { width, height, left, top } = image.getBoundingClientRect();
 
-    const maxScale = naturalWidth / clientWidth;
-    const winnerHeight = window.innerHeight;
-    const cWidth = document.documentElement.clientWidth;
+    const { clientWidth, clientHeight, offsetWidth, scrollTop } = document.documentElement;
 
-    const viewportHeight = winnerHeight;
-    const viewportWidth = cWidth;
+    const scroll = clientWidth - offsetWidth;
 
-    const imageApectRatio = naturalWidth / naturalHeight;
-    const vieportAspectRatio = viewportWidth / viewportHeight;
+    this.clonedImg = document.createElement('img');
 
-    const imageCenter = {
-      x: left + clientWidth / 2,
-      y: top + clientHeight / 2
-    };
+    const X = (clientWidth - scroll) / 2 - left - width / 2;
+    const Y = -top + (clientHeight - height) / 2;
 
-    const viewport = {
-      x: cWidth / 2,
-      y: winnerHeight / 2
-    };
+    const ratio = height / width;
 
-    const translate = {
-      x: viewport.x - imageCenter.x,
-      y: viewport.y - imageCenter.y,
-    };
+    let maxWidth = image.naturalWidth;
+    maxWidth >= clientWidth && (maxWidth = clientWidth);
+    const maxHeight = maxWidth * ratio;
+    maxHeight >= clientHeight && (maxWidth = (maxWidth * clientHeight) / maxHeight);
 
-    let imageScale = 1;
+    const scale = maxWidth !== width ? maxWidth / width : 1;
 
-    if (naturalWidth < viewportWidth && naturalHeight < viewportHeight) {
-      imageScale = maxScale;
-    } else if (imageApectRatio < vieportAspectRatio) {
-      imageScale = (viewportHeight / naturalHeight) * maxScale;
-    } else {
-      imageScale = (viewportWidth / naturalWidth) * maxScale;
-    }
+    this.clonedImg.src = src;
+    this.clonedImg.width = width;
+    this.clonedImg.height = height;
+    this.clonedImg.style.top = `${top + scrollTop}px`;
+    this.clonedImg.style.left = `${left}px`;
+    this.clonedImg.style.width = `${width}px`;
+    this.clonedImg.style.height = `${height}px`;
+    this.clonedImg.className = 'zooom-clone';
 
-    this.imageZooom.setAttribute(
-      'style',
-      `transform: translate(${translate.x}px, ${translate.y}px) scale(${imageScale}) translateZ(0);`
-    );
+    document.body.appendChild(this.clonedImg);
+
+    this.clonedImg.offsetWidth;
+    this.clonedImg.setAttribute('data-zoomed', 'true');
+    this.clonedImg.style.position = 'absolute';
+    this.clonedImg.style.transform = `matrix(${scale},0,0,${scale},${X},${Y})`;
+
+    // hide orginal image
+    setTimeout(() => {
+      this.imageZooom.style.visibility = 'hidden';
+    }, 50);
+
+    // remove image
+    this.clonedImg.addEventListener('click', () => {
+      this.reset();
+    });
+  }
+
+  // reset all style
+  reset = () => {
+    this.clonedImg.style.removeProperty('transform');
+    setTimeout(() => {
+      this.clonedImg.parentNode?.removeChild(this.clonedImg);
+      this.imageZooom.removeAttribute('style');
+    }, this.animTime);
   }
 }
 
