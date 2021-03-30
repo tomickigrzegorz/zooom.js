@@ -1,10 +1,3 @@
-interface ImageParameters {
-  naturalWidth: number,
-  naturalHeight: number,
-  clientWidth: number,
-  clientHeight: number
-}
-
 interface ConstructorObject {
   zIndex?: number;
   animationTime?: number;
