@@ -75,22 +75,27 @@ onCleared | Function |  |  | A function that runs when the photo is closed. It c
 
 ## Sample configuration
 ```javascript
-// class name
 new Zooom('img-zoom', {
   zIndex: 9,
+  
   // animation time in number
   animationTime: 300,
+  
   // cursor type
   cursor: {
     in: 'zoom-in',
     out: 'zoom-out'
   },
+
   overlay: {
+  
     // hex or color-name
     color: '#fff',
+  
     // [10, 20, 34, ..., 100] maximum number 100
     opacity: 80,
   },
+
   // callback function
   // see usage example docs/index.html
   onLoaded: function(element) {},
@@ -101,6 +106,44 @@ new Zooom('img-zoom', {
 ## Minimal configuration
 ```javascript
 new Zooom('img-zoom');
+```
+
+## How to use Zooom with Bootstrap Carousel
+```javascript
+new Zooom('img-zoom', {
+  zIndex: 9,
+  
+  // animation time in number
+  animationTime: 300,
+  
+  // cursor type
+  cursor: {
+    in: 'zoom-in',
+    out: 'zoom-out'
+  },
+  overlay: {
+    
+    // hex or color-name
+    color: '#fff',
+    
+    // [10, 20, 34, ..., 100] maximum number 100
+    opacity: 80,
+  },
+
+  // callback function
+  // see usage example docs/index.html
+  onLoaded: function(element) {
+  
+    // we stop automatic scrolling when we do zoom images
+    $('.carousel').carousel('pause');
+  },
+  
+  onCleared: function(element) {
+  
+    // we restart the carousels after closing the photo
+    $('.carousel').carousel('cycle');
+  }
+});
 ```
 
 ## Browsers support
