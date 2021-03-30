@@ -1,8 +1,19 @@
+## v1.0.10 (2021-03-30)
+
+### Added
+- Create a separate photo with styles for each click, fixed problem when photo is in overflow element
+
+### Changed
+- Removal of style from main photo
+- Replaced node-sass to sass
+- The browserslist extension
+
 ## v1.0.9 (2020-11-20)
 ### Added
 - UMD file
 - Renaming a variable
 - Banner from rollup.js
+
 ### Changed
 - Removed banner plugin
 
