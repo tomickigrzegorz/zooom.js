@@ -15,3 +15,18 @@ const githubConrner = `
 document.addEventListener('DOMContentLoaded', (event) => {
   document.body.insertAdjacentHTML('beforeend', githubConrner);
 });
+
+const texts = document.querySelectorAll('.text');
+
+[...texts].map(text => {
+  let newText = '';
+  const word = text.textContent.split(' ');
+  word.forEach(element => {
+    const el = element.trim();
+    if (el.length > 0) {
+      newText += `<span class="single-word">${el}</span>`;
+    }
+  });
+  text.innerHTML = '';
+  text.innerHTML = newText;
+});

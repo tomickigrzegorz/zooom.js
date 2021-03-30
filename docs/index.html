@@ -5,72 +5,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="./github-corner.js"></script>
+    <script defer="defer" src="./github-corner.js"></script>
     <link rel="stylesheet" href="./style.css">
     <title>Zooom</title>
   </head>
 
   <body>
     <div class="container">
-      <figure>
-        <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_01.jpg">
-        <figcaption class="description">The Papal Basilica of Saint Peter in the Vatican (Italian: Basilica Papale di
-          San Pietro in Vaticano)... <a href="https://en.wikipedia.org/wiki/St._Peter%27s_Basilica" target="_blank">[
-            Wikipedia]</a>
-        </figcaption>
-      </figure>
-      <figure>
-        <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_02.jpg">
-        <figcaption class="description">The Great Wall of China (Chinese: 萬里長城; pinyin: Wànlǐ Chángchéng) is the
-          collective... <a href="https://en.wikipedia.org/wiki/Great_Wall_of_China" target="_blank">[Wikipedia]</a>
-        </figcaption>
-      </figure>
-      <div class="row">
+      <section>
+        <figure class="overflow">
+          <h1>OVERFLOW IMAGE</h1>
+          <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_01.jpg"
+            alt="The Papal Basilica of Saint Peter in the Vatican (Italian: Basilica Papale di San Pietro in Vaticano)...">
+          <figcaption class="description">The Papal Basilica of Saint Peter in the Vatican (Italian: Basilica Papale di
+            San Pietro in Vaticano)... <a href="https://en.wikipedia.org/wiki/St._Peter%27s_Basilica" target="_blank">[
+              Wikipedia]</a>
+          </figcaption>
+        </figure>
+        <div class="text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Natus veritatis, quam maiores
+          cupiditate quod impedit atque, ad molestiae magni accusamus tempore praesentium blanditiis labore doloremque
+          adipisci? Odio eaque assumenda libero. Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias sunt
+          laboriosam exercitationem illum recusandae, modi porro vitae ipsa ex aperiam nulla voluptate, labore laborum
+          facilis dolorem debitis cupiditate natus ab.</div>
+      </section>
+      <section>
         <figure>
+          <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_02.jpg">
+          <figcaption class="description">The Great Wall of China (Chinese: 萬里長城; pinyin: Wànlǐ Chángchéng) is the
+            collective... <a href="https://en.wikipedia.org/wiki/Great_Wall_of_China" target="_blank">[Wikipedia]</a>
+          </figcaption>
+        </figure>
+      </section>
+      <section>
+        <div class="text">
+          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Lorem ipsum dolor, sit amet consectetur adipisicing
+          elit. Earum fugiat qui veniam voluptatibus, est autem ipsum voluptatum reiciendis consequuntur facere ea
+          itaque laborum quis facilis, iure quisquam tenetur, rem assumenda!
+        </div>
+        <figure class="left">
           <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_03.jpg">
         </figure>
-        <figure>
-          <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_04.jpg">
-        </figure>
-      </div>
-      <picture>
-        <source class="responsive" loading="lazy" width="1200" srcset="./images/IMG_5287.webp"
-          media="(min-width: 993px)" type="image/webp">
-        <source class="responsive" loading="lazy" width="1200" srcset="./images/IMG_5287.jpg"
-          media="(min-width: 993px)">
-        <source class="responsive" loading="lazy" width="992" srcset="./images/IMG_5302.webp" media="(min-width: 768px)"
-          type="image/webp">
-        <source class="responsive" loading="lazy" width="992" srcset="./images/IMG_5302.jpg" media="(min-width: 768px)">
-        <source class="responsive" loading="lazy" width="768" srcset="./images/IMG_8533.webp" media="(max-width: 767px)"
-          type="image/webp">
-        <source class="responsive" loading="lazy" width="768" srcset="./images/IMG_8533.jpg" media="(max-width: 767px)">
-        <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_5287.jpg">
-      </picture>
-      <div class="row">
-        <figure>
+        <div class="text">
+          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Lorem ipsum dolor, sit amet consectetur adipisicing
+          elit. Earum fugiat qui veniam voluptatibus, est autem ipsum voluptatum reiciendis consequuntur facere ea
+          itaque laborum quis facilis, iure quisquam tenetur, rem assumenda! Lorem ipsum, dolor sit amet consectetur
+          adipisicing elit. Unde rem illum nam nihil non fuga eum fugiat veritatis. Iste, doloribus quaerat. Maxime enim
+          quae modi porro facilis. Laudantium, consequatur nihil?
+        </div>
+      </section>
+      <section>
+        <picture>
+          <source class="responsive" loading="lazy" width="1200" srcset="./images/IMG_5287.webp"
+            media="(min-width: 993px)" type="image/webp">
+          <source class="responsive" loading="lazy" width="1200" srcset="./images/IMG_5287.jpg"
+            media="(min-width: 993px)">
+          <source class="responsive" loading="lazy" width="992" srcset="./images/IMG_5302.webp"
+            media="(min-width: 768px)" type="image/webp">
+          <source class="responsive" loading="lazy" width="992" srcset="./images/IMG_5302.jpg"
+            media="(min-width: 768px)">
+          <source class="responsive" loading="lazy" width="768" srcset="./images/IMG_8533.webp"
+            media="(max-width: 767px)" type="image/webp">
+          <source class="responsive" loading="lazy" width="768" srcset="./images/IMG_8533.jpg"
+            media="(max-width: 767px)">
+          <img class="responsive img-zoom" loading="lazy" width="1200" height="800"
+            srcset="./images/IMG_5287.jpg 993w, ./images/IMG_5302.jpg 768w, ./images/IMG_5302.jpg 768w, ./images/IMG_8533.jpg 767w"
+            sizes="(min-width: 993px) 993px,  (min-width: 768px) 768px, (max-width: 767px) 767px"
+            src="./images/IMG_5287.jpg">
+        </picture>
+      </section>
+      <section>
+        <figure class="right">
           <img class="responsive img-zoom" loading="lazy" height="500" src="./images/IMG_06.jpg">
           <figcaption class="description">Morocco (/məˈrɒkoʊ/ (About this soundlisten); Arabic: المغرب... <a
               href="https://en.wikipedia.org/wiki/Morocco" target="_blank">[Wikipedia]</a></figcaption>
         </figure>
+        <div class="text">
+          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Lorem ipsum dolor, sit amet consectetur adipisicing
+          elit. Earum fugiat qui veniam voluptatibus, est autem ipsum voluptatum reiciendis consequuntur facere ea
+          itaque laborum quis facilis, iure quisquam tenetur, rem assumenda! Lorem ipsum, dolor sit amet consectetur
+          adipisicing elit. Unde rem illum nam nihil non fuga eum fugiat veritatis. Iste, doloribus quaerat. Maxime enim
+          quae modi porro facilis. Laudantium, consequatur nihil? Lorem ipsum dolor sit amet, consectetur adipisicing
+          elit. Aliquid, laborum!
+        </div>
+      </section>
+      <section>
         <figure>
-          <img class="responsive img-zoom" loading="lazy" height="500" src="./images/IMG_07.jpg">
-          <figcaption class="description">Morocco's predominant religion is Islam, and its official languages are Arabic
-            and Berber... <a href="https://en.wikipedia.org/wiki/Morocco" target="_blank">[Wikipedia]</a></figcaption>
+          <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_09.jpg">
+          <figcaption class="description">Charlottenburg Palace (German: Schloss Charlottenburg) is a Baroque palace in
+            Berlin... <a href="https://en.wikipedia.org/wiki/Charlottenburg_Palace" target="_blank">[Wikipedia]</a>
+          </figcaption>
         </figure>
-      </div>
-      <figure>
-        <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_08.jpg">
-        <figcaption class="description">The Moszna Castle (Polish: Pałac w Mosznej, German: Schloss Moschen) is a
-          historic castle and
-          residence located in a small village of Moszna... <a href="https://en.wikipedia.org/wiki/Moszna_Castle"
-            target="_blank">[Wikipedia]</a></figcaption>
-      </figure>
-      <figure>
-        <img class="responsive img-zoom" loading="lazy" width="1200" height="800" src="./images/IMG_09.jpg">
-        <figcaption class="description">Charlottenburg Palace (German: Schloss Charlottenburg) is a Baroque palace in
-          Berlin... <a href="https://en.wikipedia.org/wiki/Charlottenburg_Palace" target="_blank">[Wikipedia]</a>
-        </figcaption>
-      </figure>
+      </section>
     </div>
 
     <script>
