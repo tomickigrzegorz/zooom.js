@@ -109,6 +109,7 @@ new Zooom('img-zoom');
 ```
 
 ## How to use Zooom with Bootstrap Carousel
+See an [example](https://codepen.io/Tomik23/full/VwPmLqX)
 ```javascript
 new Zooom('img-zoom', {
   zIndex: 9,
