@@ -176,7 +176,9 @@ class Zooom {
     const src = image.currentSrc || image.src;
     let { width, height, left, top } = image.getBoundingClientRect();
 
-    const { clientWidth, clientHeight, offsetWidth, scrollTop } = document.documentElement;
+    const { clientWidth, clientHeight, offsetWidth } = document.documentElement;
+
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
 
     const scroll = clientWidth - offsetWidth;
 

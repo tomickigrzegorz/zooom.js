@@ -1,12 +1,21 @@
-## v1.0.10 (2021-03-30)
+## v1.0.12 (2021-06-13)
+### Changed
+- fix: scrollTop not always work [#28](https://github.com/tomik23/zooom.js/issues/28)
 
+## v1.0.11 (2021-04-16)
+### Added
+- New example - leading color
+
+## v1.0.10 (2021-03-30)
 ### Added
 - Create a separate photo with styles for each click, fixed problem when photo is in overflow element
 
 ### Changed
+- fix: Fixed problem when photo is in overflow element
 - Removal of style from main photo
 - Replaced node-sass to sass
 - The browserslist extension
+- Remove interface ImageParameters
 
 ## v1.0.9 (2020-11-20)
 ### Added
