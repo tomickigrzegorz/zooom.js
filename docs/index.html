@@ -150,18 +150,33 @@
       window.addEventListener('DOMContentLoaded', function () {
         new Zooom('img-zoom', {
           zIndex: 9,
-          animationTime: 300, // animation time in number
+
+          // animation time in number
+          animationTime: 300,
+
           cursor: {
             in: 'zoom-in',
             out: 'zoom-out'
           },
+
           overlay: {
             // hex or color-name
             color: '#fff',
             // [10, 20, 34, ..., 100] maximum number 100
             opacity: 80,
           },
-          onLoaded: function (element) {
+
+          onResize: function () {
+            let responsiveMin = 600;
+            const windowWidth =
+              window.innerWidth ||
+              document.documentElement.clientWidth ||
+              document.body.clientWidth;
+
+            return windowWidth < responsiveMin ? true : false;
+          },
+
+          onOpening: function (element) {
             const nextSibling = element.nextElementSibling ? element.nextElementSibling : element.parentNode.nextElementSibling;
             if (nextSibling && nextSibling.classList.contains('description')) {
               const textContent = nextSibling.innerHTML;
@@ -181,7 +196,8 @@
               }
             }
           },
-          onCleared: function (element) {
+
+          onClosed: function (element) {
             const descriptionText = document.getElementById('description');
             if (descriptionText) {
               descriptionText.classList.remove('animation-on');
