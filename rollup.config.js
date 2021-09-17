@@ -4,7 +4,7 @@ import serve from 'rollup-plugin-serve';
 import livereload from 'rollup-plugin-livereload';
 import typescript from '@rollup/plugin-typescript';
 import { terser } from 'rollup-plugin-terser';
-import pkg from "./package.json";
+import pkg from './package.json';
 
 const { PRODUCTION } = process.env;
 const extensions = ['.ts'];
@@ -19,21 +19,19 @@ const plugins = () => {
       babelHelpers: 'bundled',
       presets: ['@babel/preset-env'],
       plugins: ['@babel/proposal-class-properties'],
-      extensions
+      extensions,
     }),
     PRODUCTION && terser(),
     typescript({
-      noEmitOnError: false
+      noEmitOnError: false,
     }),
     copy({
-      targets: [
-        { src: './images/**/*', dest: 'docs/images' }
-      ]
+      targets: [{ src: './images/**/*', dest: 'docs/images' }],
     }),
     !PRODUCTION && serve({ open: true, contentBase: 'docs' }),
     !PRODUCTION && livereload(),
-  ]
-}
+  ];
+};
 
 export default [
   {
@@ -43,9 +41,9 @@ export default [
       format: 'iife',
       name: 'Zooom',
       banner,
-      sourcemap: !PRODUCTION
+      sourcemap: !PRODUCTION,
     },
-    plugins: plugins()
+    plugins: plugins(),
   },
   {
     input: 'sources/js/index.ts',
@@ -56,6 +54,6 @@ export default [
       name: 'Zooom',
       banner,
     },
-    plugins: plugins()
+    plugins: plugins(),
   },
 ];
