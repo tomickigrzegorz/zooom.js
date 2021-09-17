@@ -3,8 +3,9 @@ interface ConstructorObject {
   animationTime?: number;
   overlay?: ObjectOverlay;
   cursor?: ObjectCursor;
-  onLoaded?: () => void;
-  onCleared?: () => void;
+  onResize?: () => void;
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
 interface ObjectCursor {

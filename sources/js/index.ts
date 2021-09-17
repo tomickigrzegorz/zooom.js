@@ -5,14 +5,16 @@ class Zooom {
   private imageZooom: any;
   private clonedImg: any;
   private zIndex: number;
+  private arrayEvents: Array<string>;
   private cursorIn?: string;
   private cursorOut?: string;
   private color?: string;
   private opacity?: number;
   private animTime?: number;
   private overlay: HTMLDivElement;
-  private onLoaded: Function;
-  private onCleared: Function;
+  private onResize: Function;
+  private onOpen: Function;
+  private onClose: Function;
 
   constructor(
     className: string,
@@ -21,20 +23,25 @@ class Zooom {
       animationTime,
       cursor,
       overlay,
-      onLoaded = () => { },
-      onCleared = () => { }
+      onResize = () => {},
+      onOpen = () => {},
+      onClose = () => {},
     }: ConstructorObject = {}
   ) {
     this.element = className;
-    this.animTime = this.isNumber(animationTime, 300);
-    this.zIndex = this.isNumber(zIndex, 1);
+    this.animTime = animationTime || 300;
+    this.zIndex = zIndex || 1;
     this.dataZoomed = 'data-zoomed';
     this.overlayZoomed = 'zooom-overlay';
     this.overlay = document.createElement('div');
+    this.clonedImg = document.createElement('img');
 
     // callback function
-    this.onLoaded = onLoaded;
-    this.onCleared = onCleared;
+    this.onResize = onResize;
+    this.onOpen = onOpen;
+    this.onClose = onClose;
+
+    this.arrayEvents = ['scroll', 'resize', 'click'];
 
     // create cursor
     this.cursorType(cursor);
@@ -45,56 +52,75 @@ class Zooom {
     this.initial();
   }
 
-  overlayConfig = ({ color, opacity }: ObjectOverlay = { color: '#fff', opacity: 100 }) => {
-    this.color = color;
-    this.opacity = opacity ? Math.floor(opacity) >= 100 ? 1 : Math.floor(opacity) / 100 : 1;
-  }
-
-  // set cursor type
-  cursorType = ({ in: zIn, out: zOut }: ObjectCursor = { in: 'zoom-in', out: 'zoom-out' }) => {
-    this.cursorIn = `cursor: ${zIn}`;
-    this.cursorOut = `cursor: ${zOut};`;
-  }
-
   initial = () => {
-    this.headStyle();
-    this.createOverlay();
+    this.eventHandle();
+
+    this.styleHead();
+    this.createOverlay(this.overlay);
     this.setAttr();
 
-    this.overlayType('in');
-    this.overlayType('out');
+    this.styleOverlay();
+  };
 
-    const debounce = this.debounce(this.handleEvent, 30);
+  eventHandle = () => {
+    window.addEventListener(
+      'resize',
+      this.debounce(() => this.event(), 70)
+    );
 
-    document.addEventListener('click', this.handleClick);
-    window.addEventListener('scroll', this.handleEvent);
-    window.addEventListener('resize', debounce);
-  }
+    window.addEventListener('load', this.event);
+  };
+
+  event = () => {
+    this.arrayEvents.map((type) => {
+      if (this.onResize()) {
+        window.removeEventListener(
+          type,
+          type === 'click' ? this.handleClick : this.handleEvent
+        );
+      } else {
+        // console.log('ok');
+        window.addEventListener(
+          type,
+          type === 'click' ? this.handleClick : this.handleEvent
+        );
+      }
+    });
+  };
+
+  overlayConfig = (
+    { color, opacity }: ObjectOverlay = { color: '#fff', opacity: 100 }
+  ) => {
+    this.color = color;
+    this.opacity = opacity
+      ? Math.floor(opacity) >= 100
+        ? 1
+        : Math.floor(opacity) / 100
+      : 1;
+  };
+
+  // set cursor type
+  cursorType = (
+    { in: zIn, out: zOut }: ObjectCursor = { in: 'zoom-in', out: 'zoom-out' }
+  ) => {
+    this.cursorIn = `cursor: ${zIn}`;
+    this.cursorOut = `cursor: ${zOut};`;
+  };
 
   setAttr = () => {
     const zoomedElements = document.querySelectorAll(`.${this.element}`);
     for (let i = 0; i < zoomedElements.length; i++) {
       zoomedElements[i].setAttribute(this.dataZoomed, 'false');
     }
-  }
+  };
 
-  isNumber = (element: number | undefined, num: number) => {
-    return element === undefined
-      ? num
-      : typeof element === 'string' ? +element : element;
-  }
-
-  debounce = (func: any, wait: number) => {
-    let timeout: any;
-    return function executedFunction(...args: any[]) {
-      const later = () => {
-        timeout = null;
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
+  debounce = (fn: Function, ms = 300) => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    return function (this: any, ...args: any[]) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn.apply(this, args), ms);
     };
-  }
+  };
 
   handleClick = (event: any) => {
     const { target } = event;
@@ -106,7 +132,7 @@ class Zooom {
     } else if (dataZoomed === 'true' || target.id === this.overlayZoomed) {
       this.handleEvent();
     }
-  }
+  };
 
   handleEvent = () => {
     const imagezooom = document.querySelector(`[${this.dataZoomed}="true"]`);
@@ -119,58 +145,71 @@ class Zooom {
     setTimeout(() => {
       imagezooom.setAttribute(this.dataZoomed, 'false');
     }, this.animTime);
-    // callback function onCleared
-    this.onCleared(this.imageZooom);
-    this.fadeOut();
-  }
+    // callback function onClose
+    this.onClose(this.imageZooom);
+    this.fadeOut(this.overlay);
+  };
 
-  headStyle = () => {
-    const css = `.${this.element}{${this.cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{${this.cursorOut}position:relative;z-index:${this.zIndex + 9};transition:transform ${this.animTime}ms ease-in-out;}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background-color:${this.color};z-index:${this.zIndex};${this.cursorOut}}`;
+  styleHead = () => {
+    const css = `.${this.element}{${
+      this.cursorIn
+    }};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{${
+      this.cursorOut
+    }position:relative;z-index:${this.zIndex + 9};transition:transform ${
+      this.animTime
+    }ms ease-in-out;}#zooom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background-color:${
+      this.color
+    };z-index:${this.zIndex};${this.cursorOut}}`;
+
     this.createStyle(css);
-  }
+  };
 
   createStyle = (css: string) => {
     const style = document.createElement('style');
     style.appendChild(document.createTextNode(css));
     document.head.appendChild(style);
-  }
+  };
 
   zooomInit = () => {
-    this.imageZooom.setAttribute(this.dataZoomed, 'true');
+    const img = this.imageZooom;
+    img.setAttribute(this.dataZoomed, 'true');
 
-    this.cloneImg(this.imageZooom);
+    this.cloneImg(img);
 
-    this.fadeIn();
+    this.fadeIn(this.overlay);
 
     // callback function
-    this.onLoaded(this.imageZooom);
-  }
+    this.onOpen(img);
+  };
 
-  createOverlay = () => {
-    this.overlay.id = this.overlayZoomed;
-    this.overlay.style.display = 'none';
-    document.body.appendChild(this.overlay);
-  }
+  createOverlay = (overlay: HTMLDivElement) => {
+    overlay.id = this.overlayZoomed;
+    overlay.style.display = 'none';
+    document.body.appendChild(overlay);
+  };
 
-  fadeIn = () => {
-    this.overlay.className = 'zooom-overlay-in';
-    this.overlay.removeAttribute('style');
-  }
+  fadeIn = (overlay: HTMLDivElement) => {
+    overlay.className = 'zooom-overlay-in';
+    overlay.removeAttribute('style');
+  };
 
-  fadeOut = () => {
-    this.overlay.classList.add('zooom-overlay-out');
+  fadeOut = (overlay: HTMLDivElement) => {
+    overlay.classList.add('zooom-overlay-out');
     setTimeout(() => {
-      this.overlay.classList.remove('zooom-overlay-in');
-      this.overlay.style.display = 'none';
+      overlay.classList.remove('zooom-overlay-in');
+      overlay.style.display = 'none';
     }, this.animTime);
-  }
+  };
 
-  overlayType = (type: string) => {
-    const from = type == 'in' ? 0 : this.opacity;
-    const to = type == 'in' ? this.opacity : 0;
-    const css = `.zooom-overlay-${type}{-webkit-animation: show-${type} ${this.animTime}ms ease-${type} forwards;animation: show-${type} ${this.animTime}ms ease-${type} forwards;}@keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}@-webkit-keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}}`;
-    this.createStyle(css);
-  }
+  styleOverlay = () => {
+    ['in', 'out'].map((type) => {
+      const from = type == 'in' ? 0 : this.opacity;
+      const to = type == 'in' ? this.opacity : 0;
+      const css = `.zooom-overlay-${type}{-webkit-animation: show-${type} ${this.animTime}ms ease-${type} forwards;animation: show-${type} ${this.animTime}ms ease-${type} forwards;}@keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}@-webkit-keyframes show-${type}{from{opacity:${from};}to{opacity:${to}}}}`;
+
+      this.createStyle(css);
+    });
+  };
 
   cloneImg = (image: HTMLImageElement) => {
     const src = image.currentSrc || image.src;
@@ -178,11 +217,13 @@ class Zooom {
 
     const { clientWidth, clientHeight, offsetWidth } = document.documentElement;
 
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const scrollTop =
+      window.pageYOffset ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0;
 
     const scroll = clientWidth - offsetWidth;
-
-    this.clonedImg = document.createElement('img');
 
     const X = (clientWidth - scroll) / 2 - left - width / 2;
     const Y = -top + (clientHeight - height) / 2;
@@ -192,25 +233,28 @@ class Zooom {
     let maxWidth = image.naturalWidth;
     maxWidth >= clientWidth && (maxWidth = clientWidth);
     const maxHeight = maxWidth * ratio;
-    maxHeight >= clientHeight && (maxWidth = (maxWidth * clientHeight) / maxHeight);
+    maxHeight >= clientHeight &&
+      (maxWidth = (maxWidth * clientHeight) / maxHeight);
 
     const scale = maxWidth !== width ? maxWidth / width : 1;
 
-    this.clonedImg.src = src;
-    this.clonedImg.width = width;
-    this.clonedImg.height = height;
-    this.clonedImg.style.top = `${top + scrollTop}px`;
-    this.clonedImg.style.left = `${left}px`;
-    this.clonedImg.style.width = `${width}px`;
-    this.clonedImg.style.height = `${height}px`;
-    this.clonedImg.className = 'zooom-clone';
+    const img = this.clonedImg;
 
-    document.body.appendChild(this.clonedImg);
+    img.src = src;
+    img.width = width;
+    img.height = height;
+    img.style.top = `${top + scrollTop}px`;
+    img.style.left = `${left}px`;
+    img.style.width = `${width}px`;
+    img.style.height = `${height}px`;
+    img.className = 'zooom-clone';
 
-    this.clonedImg.offsetWidth;
-    this.clonedImg.setAttribute('data-zoomed', 'true');
-    this.clonedImg.style.position = 'absolute';
-    this.clonedImg.style.transform = `matrix(${scale},0,0,${scale},${X},${Y})`;
+    document.body.appendChild(img);
+
+    img.offsetWidth;
+    img.setAttribute('data-zoomed', 'true');
+    img.style.position = 'absolute';
+    img.style.transform = `matrix(${scale},0,0,${scale},${X},${Y})`;
 
     // hide orginal image
     setTimeout(() => {
@@ -218,19 +262,18 @@ class Zooom {
     }, 50);
 
     // remove image
-    this.clonedImg.addEventListener('click', () => {
-      this.reset();
-    });
-  }
+    img.addEventListener('click', this.reset);
+  };
 
   // reset all style
   reset = () => {
-    this.clonedImg.style.removeProperty('transform');
+    const img = this.clonedImg;
+    img.style.removeProperty('transform');
     setTimeout(() => {
-      this.clonedImg.parentNode?.removeChild(this.clonedImg);
+      img.parentNode?.removeChild(img);
       this.imageZooom.removeAttribute('style');
     }, this.animTime);
-  }
+  };
 }
 
 export default Zooom;

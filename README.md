@@ -17,25 +17,31 @@
 See the demo - [example](https://tomik23.github.io/zooom.js/)
 
 ## How to add to page
+
 1. Just download the library from the `docs/zoom.min.js` and add it to head.
+
 ```html
 <script src="./zooom.min.js"></script>
 ```
+
 2. For each photo you want to grow, add a class in our example it's `img-zoom`
+
 ```html
-<img class="img-zoom" src="./images/image.jpg">
+<img class="img-zoom" src="./images/image.jpg" />
 ```
+
 3. Now all you have to do is call our library, this is the simplest example. Below you will find a description of how to configure the library more.
+
 ```html
 <script>
-  window.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('DOMContentLoaded', function () {
     new Zooom('img-zoom');
   });
 </script>
 ```
 
-
 ## Clone the repo and install dependencies
+
 ```bash
 git clone https://github.com/tomik23/zooom.js.git
 cd zooom
@@ -45,6 +51,7 @@ npm i
 ```
 
 ## Watch/Build the app
+
 Watch the app, just call:
 
 ```bash
@@ -63,95 +70,123 @@ npm run prod
 
 ## Configuration of the plugin
 
-props | type | default | require | description
----- | :-------: | :-------: | :--------: | -----------
-zIndex | Number | `1` |  | Option to control layer positions
-animationTime | Number | `300` | | Animation speed in milliseconds
-in / out | String | `zoom-in / zoom-out` |  | The cursor property specifies the mouse cursor to be displayed when pointing over an element
-color | String | `#fff` |  | Overlay layer color, hex only
-opacity | Number | `100` |  | Overlay layer opacity, number must be an integer, maximum number 100
-onLoaded | Function |  |  | A helper function with which we can, for example, add text from the caption to the photo to show when zooming in on the photo. In the function we have access to the image element
-onCleared | Function |  |  | A function that runs when the photo is closed. It can be combined with the function `onLoaded` see example. As in the previous `onLoaded` function, here we have access to the image element
-
-## Sample configuration
-```javascript
-new Zooom('img-zoom', {
-  zIndex: 9,
-  
-  // animation time in number
-  animationTime: 300,
-  
-  // cursor type
-  cursor: {
-    in: 'zoom-in',
-    out: 'zoom-out'
-  },
-
-  overlay: {
-  
-    // hex or color-name
-    color: '#fff',
-  
-    // [10, 20, 34, ..., 100] maximum number 100
-    opacity: 80,
-  },
-
-  // callback function
-  // see usage example docs/index.html
-  onLoaded: function(element) {},
-  onCleared: function(element) {}
-});
-```
+| props         |   type   |       default        | require | description                                                                                                                                                                              |
+| ------------- | :------: | :------------------: | :-----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| zIndex        |  Number  |         `1`          |         | Option to control layer positions                                                                                                                                                        |
+| animationTime |  Number  |        `300`         |         | Animation speed in milliseconds                                                                                                                                                          |
+| in / out      |  String  | `zoom-in / zoom-out` |         | The cursor property specifies the mouse cursor to be displayed when pointing over an element                                                                                             |
+| color         |  String  |        `#fff`        |         | Overlay layer color, hex only                                                                                                                                                            |
+| opacity       |  Number  |        `100`         |         | Overlay layer opacity, number must be an integer, maximum number 100                                                                                                                     |
+| onResize      | Function |                      |         | A function that can be used to block clicking on an image. See example below - How to prevent zoom-in/out images                                                                         |
+| onOpen        | Function |                      |         | A helper function with which we can, for example, add text from the caption to the photo to show when zooming in on the photo. In the function we have access to the image element       |
+| onClose       | Function |                      |         | A function that runs when the photo is closed. It can be combined with the function `onOpen` see example. As in the previous `onOpen` function, here we have access to the image element |
 
 ## Minimal configuration
+
 ```javascript
 new Zooom('img-zoom');
 ```
 
-## How to use Zooom with Bootstrap Carousel
-See an [example](https://codepen.io/Tomik23/full/VwPmLqX)
+## Sample configuration
+
 ```javascript
 new Zooom('img-zoom', {
   zIndex: 9,
-  
+
   // animation time in number
   animationTime: 300,
-  
+
   // cursor type
   cursor: {
     in: 'zoom-in',
-    out: 'zoom-out'
+    out: 'zoom-out',
   },
+
   overlay: {
-    
     // hex or color-name
     color: '#fff',
-    
+
     // [10, 20, 34, ..., 100] maximum number 100
     opacity: 80,
   },
 
   // callback function
   // see usage example docs/index.html
-  onLoaded: function(element) {
-  
+  onResize: function () {},
+  onOpen: function (element) {},
+  onClose: function (element) {},
+});
+```
+
+## How to use Zooom with Bootstrap Carousel
+
+See an [example](https://codepen.io/Tomik23/full/VwPmLqX)
+
+```javascript
+new Zooom('img-zoom', {
+  zIndex: 9,
+
+  // animation time in number
+  animationTime: 300,
+
+  // cursor type
+  cursor: {
+    in: 'zoom-in',
+    out: 'zoom-out',
+  },
+  overlay: {
+    // hex or color-name
+    color: '#fff',
+
+    // [10, 20, 34, ..., 100] maximum number 100
+    opacity: 80,
+  },
+
+  // callback function
+  // see usage example docs/index.html
+  onOpen: function (element) {
     // we stop automatic scrolling when we do zoom images
     $('.carousel').carousel('pause');
   },
-  
-  onCleared: function(element) {
-  
+
+  onClose: function (element) {
     // we restart the carousels after closing the photo
     $('.carousel').carousel('cycle');
-  }
+  },
+});
+```
+
+## How to prevent zoom-in/out images
+
+Below is an example showing how to block a click when the browser width is less than 600px
+Of course, here is an example with the width of the window, but nothing prevents you from using it in a different way. The most important thing is to return the logical value - `true/false`. Each `reduction/reduction` of the window reads this variable and blocks the click.
+
+```javascript
+new Zooom('img-zoom', {
+  onResize: function () {
+    // we set the page width from which it will
+    // be possible to click on the image
+    let responsiveMin = 600;
+
+    // we check the width of the browser window
+    const windowWidth =
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth;
+
+    // we return the boolean value 'true/false'
+    // the value 'true' blocks clicking the image
+    return windowWidth < responsiveMin ? true : false;
+  },
 });
 ```
 
 ## Browsers support
 
 | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="IE / Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>IE / Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Opera | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/vivaldi/vivaldi_48x48.png" alt="Vivaldi" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)<br/>Vivaldi |
-| --------- | --------- | --------- | --------- | --------- |
-| IE10, IE11, Edge| last 2 versions| last 2 versions| last 2 versions| last 2 versions
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IE11, Edge                                                                                                                                                                                                      | last 2 versions                                                                                                                                                                                                   | last 2 versions                                                                                                                                                                                               | last 2 versions                                                                                                                                                                                           | last 2 versions                                                                                                                                                                                                   |
 
 ## License
+
 This project is available under the [MIT](https://opensource.org/licenses/mit-license.php) license.
