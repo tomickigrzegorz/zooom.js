@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/package-json/v/tomik23/zooom.js">
-  <img src="https://img.shields.io/github/size/tomik23/zooom.js/docs/zooom.min.js">
+  <img src="https://img.shields.io/github/package-json/v/tomik23/zooom.js?style=for-the-badge">
+  <img src="https://img.shields.io/github/size/tomik23/zooom.js/docs/zooom.min.js?style=for-the-badge">
   <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg">
+    <img src="https://img.shields.io/github/license/tomik23/zooom.js?style=for-the-badge">
   </a>
 </p>
 
@@ -163,6 +163,14 @@ Of course, here is an example with the width of the window, but nothing prevents
 
 ```javascript
 new Zooom('img-zoom', {
+  // we set different types of cursor depending on
+  // the width of the window below we pass
+  // the variables for the cursor styles set
+  // dynamically in the calback onResize function
+  cursor: {
+    in: 'var(--zoom-in)',
+    out: 'var(--zoom-out)',
+  },
   onResize: function () {
     // we set the page width from which it will
     // be possible to click on the image
@@ -176,7 +184,14 @@ new Zooom('img-zoom', {
 
     // we return the boolean value 'true/false'
     // the value 'true' blocks clicking the image
-    return windowWidth < responsiveMin ? true : false;
+    const widthWindow = windowWidth < responsiveMin ? true : false;
+
+    // I set different cursors depending on the width of the window
+    const root = document.documentElement;
+    root.style.setProperty('--zoom-in', widthWindow ? 'default' : 'zoom-in');
+    root.style.setProperty('--zoom-out', widthWindow ? 'default' : 'zoom-out');
+
+    return widthWindow;
   },
 });
 ```
