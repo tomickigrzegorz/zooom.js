@@ -173,7 +173,14 @@
               document.documentElement.clientWidth ||
               document.body.clientWidth;
 
-            return windowWidth < responsiveMin ? true : false;
+            const widthWindow = windowWidth < responsiveMin ? true : false;
+
+            // I set different cursors depending on the width of the window
+            const root = document.documentElement;
+            root.style.setProperty('--zoom-in', widthWindow ? 'default' : 'zoom-in');
+            root.style.setProperty('--zoom-out', widthWindow ? 'default' : 'zoom-out');
+
+            return widthWindow;
           },
 
           onOpening: function (element) {
