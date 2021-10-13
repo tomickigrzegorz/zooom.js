@@ -1,3 +1,15 @@
+## v1.0.15 (2021-06-13)
+
+### Chanded
+
+- style refactoring, reducing the size of the library
+
+## v1.0.14 (2021-06-10)
+
+### Chanded
+
+- update example
+
 ## v1.0.13 (2021-06-17)
 
 ### Added
