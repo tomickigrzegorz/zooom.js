@@ -8,10 +8,11 @@
 
 body {
   position: relative;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial,
+    sans-serif, Apple Color Emoji;
   background: #fbfbfb;
   text-rendering: optimizeLegibility;
-  font-size: calc(13px + .25vw);
+  font-size: calc(13px + 0.25vw);
 }
 
 section {
@@ -61,12 +62,12 @@ picture {
 
   &:hover {
     &:before {
-      opacity: .8;
+      opacity: 0.8;
     }
 
     &:after {
       position: absolute;
-      content: "";
+      content: '';
       z-index: 1;
       width: 100%;
       height: 100%;
@@ -74,7 +75,6 @@ picture {
       pointer-events: none;
     }
   }
-
 }
 
 .title {
