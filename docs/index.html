@@ -183,7 +183,7 @@
             return widthWindow;
           },
 
-          onOpening: function (element) {
+          onOpen: function (element) {
             const nextSibling = element.nextElementSibling ? element.nextElementSibling : element.parentNode.nextElementSibling;
             if (nextSibling && nextSibling.classList.contains('description')) {
               const textContent = nextSibling.innerHTML;
@@ -204,7 +204,7 @@
             }
           },
 
-          onClosed: function (element) {
+          onClose: function (element) {
             const descriptionText = document.getElementById('description');
             if (descriptionText) {
               descriptionText.classList.remove('animation-on');
