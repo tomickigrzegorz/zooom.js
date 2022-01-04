@@ -4,8 +4,11 @@
 * @link https://github.com/tomik23/zooom.js
 * @license MIT
 */
-var Zooom = (function () {
-    'use strict';
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Zooom = factory());
+})(this, (function () { 'use strict';
 
     /**
      *
@@ -256,5 +259,5 @@ var Zooom = (function () {
 
     return Zooom;
 
-})();
-//# sourceMappingURL=zooom.min.js.map
+}));
+//# sourceMappingURL=zooom.umd.js.map
