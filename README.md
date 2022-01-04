@@ -22,7 +22,7 @@
 <script src="https://cdn.jsdelivr.net/gh/tomik23/zooom.js@1.1.0/dist/zooom.min.js"></script>
 ```
 
-> Note: In the dist folder we have available iffe, umd and es versions as well as minified \* .min.js versions
+> Note: In the dist folder we have available iffe, umd and es versions as well as minified \*.min.js versions
 
 ##### -- OR --
 
