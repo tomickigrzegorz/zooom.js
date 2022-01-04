@@ -1,3 +1,21 @@
+## v1.1.0 (2022-01-04)
+
+### Added
+
+- a new parameter `data-zooom-big` has been added. With its help, we can open a larger version of the photo - [example-large-photo](https://tomik23.github.io/zooom.js/#large-photo)  
+  This solution is needed to optimize the website. We only display a thumbnail, only by clicking it downloads the photo from the `data-zooom-big` parameter and zooms in.
+
+```html
+<img
+  class="img-zoom"
+  loading="lazy"
+  width="576"
+  height="384"
+  data-zooom-big="large-image.jpg"
+  src="image-thumbnail.jpg"
+/>
+```
+
 ## v1.0.15 (2021-06-13)
 
 ### Chanded

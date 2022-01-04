@@ -131,6 +131,40 @@
 
       <section>
         <div class="title">
+          <h2 id="large-photo">Loading a large photo</h2>
+          <div>
+            <p>You need two versions, a thumbnail and a large photo. You also need the '.zooom-loading' photo loading
+              animation class</p>
+
+            <small>
+              <code>&lt;img class=&quot;responsive img-zoom&quot; data-zooom-big=&quot;./full-image.jpg&quot; loading=&quot;lazy&quot; width=&quot;1200&quot; height=&quot;800&quot; src=&quot;./image-thumbnail.jpg&quot;&gt;</code>
+            </small>
+          </div>
+        </div>
+        <div class="grid-list">
+          <img class="responsive img-zoom" loading="lazy" width="576" height="384"
+            data-zooom-big="https://grzegorztomicki.pl/images/wieden/1200/IMG_6325.jpg"
+            src="https://grzegorztomicki.pl/images/wieden/576/IMG_6325.jpg">
+          <img class="responsive img-zoom" loading="lazy" width="576" height="384"
+            data-zooom-big="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/1200/IMG_7167.jpg"
+            src="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/576/IMG_7167.jpg">
+          <img class="responsive img-zoom" loading="lazy" width="576" height="384"
+            data-zooom-big="https://grzegorztomicki.pl/images/maroko/1200/IMG_0738.jpg"
+            src="https://grzegorztomicki.pl/images/maroko/576/IMG_0738.jpg">
+          <img class="responsive img-zoom" loading="lazy" width="576" height="384"
+            data-zooom-big="https://grzegorztomicki.pl/images/chiny/1200/IMG_8112.jpg"
+            src="https://grzegorztomicki.pl/images/chiny/576/IMG_8112.jpg">
+          <img class="responsive img-zoom" loading="lazy" width="576" height="384"
+            data-zooom-big="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/1200/IMG_6872.jpg"
+            src="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/576/IMG_6872.jpg">
+          <img class="responsive img-zoom" loading="lazy" width="576" height="384"
+            data-zooom-big="https://grzegorztomicki.pl/images/turcja/1200/IMG_4264.jpg"
+            src="https://grzegorztomicki.pl/images/turcja/576/IMG_4264.jpg">
+        </div>
+      </section>
+
+      <section>
+        <div class="title">
           <h2>The leading color from the photo</h2>
         </div>
         <p class="codepen" data-height="577" data-theme-id="light" data-default-tab="result" data-user="Tomik23"
@@ -146,76 +180,74 @@
 
     </div>
 
+    <script src="./zooom.min.js"></script>
     <script>
-      window.addEventListener('DOMContentLoaded', function () {
-        new Zooom('img-zoom', {
-          zIndex: 9,
+      new Zooom('img-zoom', {
+        zIndex: 9,
 
-          // animation time in number
-          animationTime: 300,
+        // animation time in number
+        animationTime: 300,
 
-          cursor: {
-            in: 'var(--zoom-in)',
-            out: 'var(--zoom-out)',
-          },
+        cursor: {
+          in: 'var(--zoom-in)',
+          out: 'var(--zoom-out)',
+        },
 
-          overlay: {
-            // hex or color-name
-            color: '#fff',
-            // [10, 20, 34, ..., 100] maximum number 100
-            opacity: 80,
-          },
+        overlay: {
+          // hex or color-name
+          color: '#fff',
+          // [10, 20, 34, ..., 100] maximum number 100
+          opacity: 80,
+        },
 
-          onResize: function () {
-            let responsiveMin = 600;
-            const windowWidth =
-              window.innerWidth ||
-              document.documentElement.clientWidth ||
-              document.body.clientWidth;
+        onResize: function () {
+          let responsiveMin = 600;
+          const windowWidth =
+            window.innerWidth ||
+            document.documentElement.clientWidth ||
+            document.body.clientWidth;
 
-            const widthWindow = windowWidth < responsiveMin ? true : false;
+          const widthWindow = windowWidth < responsiveMin ? true : false;
 
-            // I set different cursors depending on the width of the window
-            const root = document.documentElement;
-            root.style.setProperty('--zoom-in', widthWindow ? 'default' : 'zoom-in');
-            root.style.setProperty('--zoom-out', widthWindow ? 'default' : 'zoom-out');
+          // I set different cursors depending on the width of the window
+          const root = document.documentElement;
+          root.style.setProperty('--zoom-in', widthWindow ? 'default' : 'zoom-in');
+          root.style.setProperty('--zoom-out', widthWindow ? 'default' : 'zoom-out');
 
-            return widthWindow;
-          },
+          return widthWindow;
+        },
 
-          onOpen: function (element) {
-            const nextSibling = element.nextElementSibling ? element.nextElementSibling : element.parentNode.nextElementSibling;
-            if (nextSibling && nextSibling.classList.contains('description')) {
-              const textContent = nextSibling.innerHTML;
-              const descriptionText = document.getElementById('description');
-              if (!descriptionText) {
-                const el = document.createElement('div');
-                el.id = 'description';
-                el.classList = 'animation-on';
-                el.innerHTML = textContent;
-                document.body.insertAdjacentElement('beforeend', el);
-              }
-              if (descriptionText) {
-                descriptionText.innerHTML = '';
-                descriptionText.innerHTML = textContent;
-                descriptionText.classList.remove('animation-off');
-                descriptionText.classList.add('animation-on');
-              }
-            }
-          },
-
-          onClose: function (element) {
+        onOpen: function (element) {
+          const nextSibling = element.nextElementSibling ? element.nextElementSibling : element.parentNode.nextElementSibling;
+          if (nextSibling && nextSibling.classList.contains('description')) {
+            const textContent = nextSibling.innerHTML;
             const descriptionText = document.getElementById('description');
+            if (!descriptionText) {
+              const el = document.createElement('div');
+              el.id = 'description';
+              el.classList = 'animation-on';
+              el.innerHTML = textContent;
+              document.body.insertAdjacentElement('beforeend', el);
+            }
             if (descriptionText) {
-              descriptionText.classList.remove('animation-on');
-              descriptionText.classList.add('animation-off');
+              descriptionText.innerHTML = '';
+              descriptionText.innerHTML = textContent;
+              descriptionText.classList.remove('animation-off');
+              descriptionText.classList.add('animation-on');
             }
           }
-        });
-      });
+        },
 
+        onClose: function (element) {
+          const descriptionText = document.getElementById('description');
+          if (descriptionText) {
+            descriptionText.classList.remove('animation-on');
+            descriptionText.classList.add('animation-off');
+          }
+        }
+      });
     </script>
-    <script src="./zooom.min.js"></script>
+
   </body>
 
 </html>
