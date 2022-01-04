@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/github/package-json/v/tomik23/zooom.js?style=for-the-badge">
-  <img src="https://img.shields.io/github/size/tomik23/zooom.js/docs/zooom.min.js?style=for-the-badge">
+  <img src="https://img.shields.io/github/size/tomik23/zooom.js/dist/zooom.min.js?style=for-the-badge">
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/tomik23/zooom.js?style=for-the-badge">
   </a>
