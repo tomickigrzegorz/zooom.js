@@ -257,4 +257,4 @@ var Zooom = (function () {
     return Zooom;
 
 })();
-//# sourceMappingURL=zooom.min.js.map
+//# sourceMappingURL=zooom.js.map
