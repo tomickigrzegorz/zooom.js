@@ -1,7 +1,7 @@
 interface ConstructorObject {
   zIndex?: number;
   animationTime?: number;
-  overlay?: ObjectOverlay;
+  overlay?: string;
   cursor?: ObjectCursor;
   onResize?: () => void;
   onOpen?: () => void;
@@ -11,9 +11,4 @@ interface ConstructorObject {
 interface ObjectCursor {
   in?: string;
   out?: string;
-}
-
-interface ObjectOverlay {
-  color?: string;
-  opacity?: number;
 }
