@@ -19,7 +19,7 @@
 #### JavaScript
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tomik23/zooom.js@1.1.0/dist/zooom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomik23/zooom.js@1.1.1/dist/zooom.min.js"></script>
 ```
 
 > Note: In the dist folder we have available iffe, umd and es versions as well as minified \*.min.js versions
@@ -36,7 +36,7 @@ See the demo - [example](https://tomik23.github.io/zooom.js/)
 
 ## How to add basic version to page
 
-1. Just download the library from the `dist/zoom.min.js` and add it to head.
+1. Just download the library from the `dist/zoom.min.js` and add it to head. Libraries in iffe, umd, esm and IE compatible library are available.
 
 ```html
 <script src="path/to/zooom.min.js"></script>
@@ -52,8 +52,8 @@ See the demo - [example](https://tomik23.github.io/zooom.js/)
 
 ```html
 <script>
-  window.addEventListener('DOMContentLoaded', function () {
-    new Zooom('img-zoom');
+  window.addEventListener("DOMContentLoaded", function () {
+    new Zooom("img-zoom");
   });
 </script>
 ```
@@ -93,8 +93,7 @@ npm run prod
 | zIndex         |  Number  |         `1`          |         | Option to control layer positions                                                                                                                                                        |
 | animationTime  |  Number  |        `300`         |         | Animation speed in milliseconds                                                                                                                                                          |
 | in / out       |  String  | `zoom-in / zoom-out` |         | The cursor property specifies the mouse cursor to be displayed when pointing over an element                                                                                             |
-| color          |  String  |        `#fff`        |         | Overlay layer color, hex only                                                                                                                                                            |
-| opacity        |  Number  |        `100`         |         | Overlay layer opacity, number must be an integer, maximum number 100                                                                                                                     |
+| overlay        |  String  |                      |         | Overlay layer color and opacity `rgba(255,255,255,0.9);` or `hsla(0, 0%, 100%, 0.9);`                                                                                                    |
 | data-zooom-big |  string  |                      |         | The large version of the photo is the views instead of the thumbnail                                                                                                                     |
 | onResize       | Function |                      |         | A function that can be used to block clicking on an image. See example below - How to prevent zoom-in/out images                                                                         |
 | onOpen         | Function |                      |         | A helper function with which we can, for example, add text from the caption to the photo to show when zooming in on the photo. In the function we have access to the image element       |
@@ -103,13 +102,14 @@ npm run prod
 ## Minimal configuration
 
 ```javascript
-new Zooom('img-zoom');
+new Zooom("img-zoom");
 ```
 
 ## Sample configuration
 
 ```javascript
-new Zooom('img-zoom', {
+new Zooom("img-zoom", {
+  // control layer positions
   zIndex: 9,
 
   // animation time in number
@@ -117,17 +117,12 @@ new Zooom('img-zoom', {
 
   // cursor type
   cursor: {
-    in: 'zoom-in',
-    out: 'zoom-out',
+    in: "zoom-in",
+    out: "zoom-out",
   },
 
-  overlay: {
-    // hex or color-name
-    color: '#fff',
-
-    // [10, 20, 34, ..., 100] maximum number 100
-    opacity: 80,
-  },
+  // overlay layer color and opacity, rgba, hsla, ...
+  overlay: "rgba(255,255,255,0.9)",
 
   // callback function
   // see usage example docs/index.html
@@ -142,7 +137,7 @@ new Zooom('img-zoom', {
 See an [example](https://codepen.io/Tomik23/full/VwPmLqX)
 
 ```javascript
-new Zooom('img-zoom', {
+new Zooom("img-zoom", {
   zIndex: 9,
 
   // animation time in number
@@ -150,27 +145,23 @@ new Zooom('img-zoom', {
 
   // cursor type
   cursor: {
-    in: 'zoom-in',
-    out: 'zoom-out',
+    in: "zoom-in",
+    out: "zoom-out",
   },
-  overlay: {
-    // hex or color-name
-    color: '#fff',
 
-    // [10, 20, 34, ..., 100] maximum number 100
-    opacity: 80,
-  },
+  // overlay layer color and opacity, rgba, hsla, ...
+  overlay: "rgba(255,255,255,0.9)",
 
   // callback function
   // see usage example docs/index.html
   onOpen: function (element) {
     // we stop automatic scrolling when we do zoom images
-    $('.carousel').carousel('pause');
+    $(".carousel").carousel("pause");
   },
 
   onClose: function (element) {
     // we restart the carousels after closing the photo
-    $('.carousel').carousel('cycle');
+    $(".carousel").carousel("cycle");
   },
 });
 ```
@@ -181,14 +172,14 @@ Below is an example showing how to block a click when the browser width is less 
 Of course, here is an example with the width of the window, but nothing prevents you from using it in a different way. The most important thing is to return the logical value - `true/false`. Each `reduction/reduction` of the window reads this variable and blocks the click.
 
 ```javascript
-new Zooom('img-zoom', {
+new Zooom("img-zoom", {
   // we set different types of cursor depending on
   // the width of the window below we pass
   // the variables for the cursor styles set
   // dynamically in the calback onResize function
   cursor: {
-    in: 'var(--zoom-in)',
-    out: 'var(--zoom-out)',
+    in: "var(--zoom-in)",
+    out: "var(--zoom-out)",
   },
   onResize: function () {
     // we set the page width from which it will
@@ -207,8 +198,8 @@ new Zooom('img-zoom', {
 
     // I set different cursors depending on the width of the window
     const root = document.documentElement;
-    root.style.setProperty('--zoom-in', widthWindow ? 'default' : 'zoom-in');
-    root.style.setProperty('--zoom-out', widthWindow ? 'default' : 'zoom-out');
+    root.style.setProperty("--zoom-in", widthWindow ? "default" : "zoom-in");
+    root.style.setProperty("--zoom-out", widthWindow ? "default" : "zoom-out");
 
     return widthWindow;
   },
@@ -217,7 +208,18 @@ new Zooom('img-zoom', {
 
 ## Browser support
 
-Zooom supports all major browsers including IE 11 and above
+Zooom supports all major browsers including IE 11 and above. It also works in the overflow element.
+
+If you want to use [data-zooom-big](https://tomik23.github.io/zooom.js/#large-photo)
+on IE browser you have to use polyfill for promise https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js
+
+### local files
+
+- dist/zooom.ie.min.js
+
+### cdn
+
+- https://cdn.jsdelivr.net/gh/tomik23/zooom.js@1.1.1/dist/zooom.ie.min.js
 
 ## License
 

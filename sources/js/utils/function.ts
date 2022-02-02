@@ -1,29 +1,30 @@
 /**
+ * @function fadeIn - fade in overlay div layer
  *
- * @param overlay - add class and opacity to overlay div layer
- * @param opacity - opacity of overlay div layer
+ * @param {HTMLDivElement} overlay - add class and opacity to overlay div layer
+ * @param {Stieng} bgrWithOpacity - opacity of overlay div layer
  */
-const fadeIn = (overlay: HTMLDivElement, opacity: number | undefined) => {
-  overlay.className = 'zooom-overlay-in';
-  overlay.style.opacity = String(opacity);
-  overlay.style.pointerEvents = 'auto';
+const fadeIn = (overlay: HTMLDivElement, bgrWithOpacity?: string) => {
+  overlay.className = "zooom-overlay-in";
+  overlay.style.pointerEvents = "auto";
+  overlay.style.background = String(bgrWithOpacity);
 };
 
 /**
+ * @function fadeOut - fade out overlay div layer
  *
- * @param overlay - remove class and style from overlay div
+ * @param {HTMLDivElement} overlay - remove class and style from overlay div
  */
 const fadeOut = (overlay: HTMLDivElement) => {
-  overlay.classList.remove('zooom-overlay-in');
-  overlay.removeAttribute('style');
+  overlay.classList.remove("zooom-overlay-in");
+  overlay.removeAttribute("style");
 };
 
 /**
- * debounce function
+ * @function debounce - debounce function
  *
- * @param fn function
- * @param ms time
- * @returns function
+ * @param {Function} fn function
+ * @param {Number} ms time
  */
 const debounce = (fn: Function, ms = 300) => {
   let timeoutId: ReturnType<typeof setTimeout>;
