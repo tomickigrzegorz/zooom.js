@@ -1,3 +1,43 @@
+## v1.1.1 (2022-02-02)
+
+### Added
+
+- generating a separate file for IE browser, rollup.config - typescript target [es6, es5]
+
+### Changed
+
+- simplification of the 'overlay' styling
+
+```js
+overlay: {
+  color: '#fff',
+  opacity: 80,
+},
+```
+
+on
+
+```js
+// overlay layer color and opacity, rgba, hsla, ...
+overlay: "rgba(255, 255, 255, 0.9)",
+```
+
+### Build
+
+- adding method and props in 'terser' mangle, adding an undeline `_zooomInit = () => {...}`
+
+```js
+terserOptions: {
+  mangle: {
+    properties: {
+      regex: /^_/,
+    },
+  },
+},
+```
+
+> This solution allowed to reduce the library by as much as 23%
+
 ## v1.1.0 (2022-01-04)
 
 ### Added
