@@ -149,8 +149,8 @@ export default class Zooom {
   /**
    * @method loadImage - cload image if data-zooom-big is set
    *
-   * @param {HTMLImageElement} - target
-   * @param {String} - bigImage
+   * @param {HTMLImageElement} target
+   * @param {String} bigImage
    */
   _loadImage = (target: HTMLImageElement, bigImage: string) => {
     return new Promise<string>((resolve, reject) => {
@@ -278,7 +278,7 @@ export default class Zooom {
 
     // hide orginal image
     setTimeout(() => {
-      this._imageZooom.style.visibility = "hidden";
+      this._imageZooom.style.setProperty("visibility", "hidden");
     }, 50);
 
     // remove image
@@ -292,7 +292,7 @@ export default class Zooom {
     this._clonedImg.style.removeProperty("transform");
     setTimeout(() => {
       this._clonedImg.parentNode?.removeChild(this._clonedImg);
-      this._imageZooom.removeAttribute("style");
+      this._imageZooom.style.removeProperty("visibility");
     }, this._animTime);
   };
 }

@@ -1,3 +1,9 @@
+## v1.1.2 (2022-02-28)
+
+### Fixed
+
+- inline styles are removed when exiting zoom [#41](https://github.com/tomik23/zooom.js/issues/41)
+
 ## v1.1.1 (2022-02-02)
 
 ### Added
