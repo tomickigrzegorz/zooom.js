@@ -110,8 +110,8 @@ var Zooom = (function () {
             /**
              * @method loadImage - cload image if data-zooom-big is set
              *
-             * @param {HTMLImageElement} - target
-             * @param {String} - bigImage
+             * @param {HTMLImageElement} target
+             * @param {String} bigImage
              */
             this._loadImage = (target, bigImage) => {
                 return new Promise((resolve, reject) => {
@@ -201,7 +201,7 @@ var Zooom = (function () {
                 img.style.transform = `matrix(${scale},0,0,${scale},${X},${Y})`;
                 // hide orginal image
                 setTimeout(() => {
-                    this._imageZooom.style.visibility = "hidden";
+                    this._imageZooom.style.setProperty("visibility", "hidden");
                 }, 50);
                 // remove image
                 img.addEventListener("click", this._reset);
@@ -214,7 +214,7 @@ var Zooom = (function () {
                 setTimeout(() => {
                     var _a;
                     (_a = this._clonedImg.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(this._clonedImg);
-                    this._imageZooom.removeAttribute("style");
+                    this._imageZooom.style.removeProperty("visibility");
                 }, this._animTime);
             };
             this._element = className;
