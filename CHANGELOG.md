@@ -2,7 +2,7 @@
 
 ### Fixed
 
-- inline styles are removed when exiting zoom [#41](https://github.com/tomik23/zooom.js/issues/41)
+- inline styles are removed when exiting zoom [#41](https://github.com/tomickigrzegorz/zooom.js/issues/41)
 
 ## v1.1.1 (2022-02-02)
 
@@ -48,7 +48,7 @@ terserOptions: {
 
 ### Added
 
-- a new parameter `data-zooom-big` has been added. With its help, we can open a larger version of the photo - [example-large-photo](https://tomik23.github.io/zooom.js/#large-photo)  
+- a new parameter `data-zooom-big` has been added. With its help, we can open a larger version of the photo - [example-large-photo](https://tomickigrzegorz.github.io/zooom.js/#large-photo)  
   This solution is needed to optimize the website. We only display a thumbnail, only by clicking it downloads the photo from the `data-zooom-big` parameter and zooms in.
 
 ```html
@@ -88,7 +88,7 @@ terserOptions: {
 
 ### Changed
 
-- fix: scrollTop not always work [#28](https://github.com/tomik23/zooom.js/issues/28)
+- fix: scrollTop not always work [#28](https://github.com/tomickigrzegorz/zooom.js/issues/28)
 
 ## v1.0.11 (2021-04-16)
 
@@ -139,7 +139,7 @@ terserOptions: {
 
 ### Changed
 
-- Lightbox animation not always appearing [#15](https://github.com/tomik23/zooom.js/issues/15)
+- Lightbox animation not always appearing [#15](https://github.com/tomickigrzegorz/zooom.js/issues/15)
 
 ## v1.0.6 (2020-09-06)
 
