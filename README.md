@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/package-json/v/tomik23/zooom.js?style=for-the-badge">
-  <img src="https://img.shields.io/github/size/tomik23/zooom.js/dist/zooom.min.js?style=for-the-badge">
+  <img src="https://img.shields.io/github/package-json/v/tomickigrzegorz/zooom.js?style=for-the-badge">
+  <img src="https://img.shields.io/github/size/tomickigrzegorz/zooom.js/dist/zooom.min.js?style=for-the-badge">
   <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/tomik23/zooom.js?style=for-the-badge">
+    <img src="https://img.shields.io/github/license/tomickigrzegorz/zooom.js?style=for-the-badge">
   </a>
 </p>
 
@@ -19,7 +19,7 @@
 #### JavaScript
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tomik23/zooom.js@1.1.2/dist/zooom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.2/dist/zooom.min.js"></script>
 ```
 
 > Note: In the dist folder we have available iffe, umd and es versions as well as minified \*.min.js versions
@@ -32,7 +32,7 @@ Download from `dist` folder and insert to html:
 
 ## Demo
 
-See the demo - [example](https://tomik23.github.io/zooom.js/)
+See the demo - [example](https://tomickigrzegorz.github.io/zooom.js/)
 
 ## How to add basic version to page
 
@@ -61,7 +61,7 @@ See the demo - [example](https://tomik23.github.io/zooom.js/)
 ## Clone the repo and install dependencies
 
 ```bash
-git clone https://github.com/tomik23/zooom.js.git
+git clone https://github.com/tomickigrzegorz/zooom.js.git
 cd zooom
 yarn
 # or
@@ -210,7 +210,7 @@ new Zooom("img-zoom", {
 
 Zooom supports all major browsers including IE 11 and above. It also works in the overflow element.
 
-If you want to use [data-zooom-big](https://tomik23.github.io/zooom.js/#large-photo)
+If you want to use [data-zooom-big](https://tomickigrzegorz.github.io/zooom.js/#large-photo)
 on IE browser you have to use polyfill for promise https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js
 
 ### local files
@@ -219,7 +219,7 @@ on IE browser you have to use polyfill for promise https://cdn.jsdelivr.net/npm/
 
 ### cdn
 
-- https://cdn.jsdelivr.net/gh/tomik23/zooom.js@1.1.2/dist/zooom.ie.min.js
+- https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.2/dist/zooom.ie.min.js
 
 ## License
 
