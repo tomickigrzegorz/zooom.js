@@ -19,7 +19,7 @@
 #### JavaScript
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.2/dist/zooom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.3/dist/zooom.min.js"></script>
 ```
 
 > Note: In the dist folder we have available iffe, umd and es versions as well as minified \*.min.js versions
@@ -219,7 +219,7 @@ on IE browser you have to use polyfill for promise https://cdn.jsdelivr.net/npm/
 
 ### cdn
 
-- https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.2/dist/zooom.ie.min.js
+- https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.3/dist/zooom.ie.min.js
 
 ## License
 
