@@ -1,3 +1,9 @@
+## v1.1.3 (2022-04-10)
+
+### Fixed
+
+- Release v1.1.2 contains files from v1.1.1 [#46](https://github.com/tomickigrzegorz/zooom.js/issues/46)
+
 ## v1.1.2 (2022-02-28)
 
 ### Fixed
