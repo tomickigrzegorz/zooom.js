@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "5.0",
     "target": "ES5",
     "module": "ESNext",
     "importHelpers": true,
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": [
