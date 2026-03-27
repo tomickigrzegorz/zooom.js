@@ -1,7 +1,7 @@
 <h1 align=center>ZOOOM.JS</h1>
 
 <p align="center">
-  A simple plugin for image zoooming without dependencies. Only pure javascipt.
+  A simple plugin for image zooming without dependencies. Pure JavaScript.
 </p>
 
 <p align="center">
@@ -12,92 +12,61 @@
   </a>
 </p>
 
+## Demo
+
+See the demo - [example](https://tomickigrzegorz.github.io/zooom.js/)
+
 ## Installation
 
 ### CDN
-
-#### JavaScript
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.3/dist/zooom.min.js"></script>
 ```
 
-> Note: In the dist folder we have available iffe, umd and es versions as well as minified \*.min.js versions
+> The `dist` folder contains IIFE, UMD and ESM builds as well as minified `*.min.js` versions.
 
-##### -- OR --
+### Download
 
-Download from `dist` folder and insert to html:
+Download from the `dist` folder and add to your HTML:
 
-- zooom.min.js
+- `dist/zooom.min.js` — core library
+- `dist/zooom-slider.min.js` — SliderPlugin (optional)
 
-## Demo
+## Basic usage
 
-See the demo - [example](https://tomickigrzegorz.github.io/zooom.js/)
-
-## How to add basic version to page
-
-1. Just download the library from the `dist/zoom.min.js` and add it to head. Libraries in iffe, umd, esm and IE compatible library are available.
+1. Add the library to your page:
 
 ```html
 <script src="path/to/zooom.min.js"></script>
 ```
 
-2. For each photo you want to grow, add a class in our example it's `img-zoom`
+2. Add a class to each image you want to zoom — `img-zoom` in this example:
 
 ```html
 <img class="img-zoom" src="./images/image.jpg" />
 ```
 
-3. Now all you have to do is call our library, this is the simplest example. Below you will find a description of how to configure the library more.
+3. Initialize the library:
 
 ```html
 <script>
-  window.addEventListener("DOMContentLoaded", function () {
-    new Zooom("img-zoom");
-  });
+  new Zooom("img-zoom");
 </script>
 ```
 
-## Clone the repo and install dependencies
+## Configuration
 
-```bash
-git clone https://github.com/tomickigrzegorz/zooom.js.git
-cd zooom
-yarn
-# or
-npm i
-```
-
-## Watch/Build the app
-
-Watch the app, just call:
-
-```bash
-yarn dev
-# or
-npm run dev
-```
-
-Build app:
-
-```bash
-yarn prod
-# or
-npm run prod
-```
-
-## Configuration of the plugin
-
-| props          |   type   |       default        | require | description                                                                                                                                                                              |
-| -------------- | :------: | :------------------: | :-----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| zIndex         |  Number  |         `1`          |         | Option to control layer positions                                                                                                                                                        |
-| animationTime  |  Number  |        `300`         |         | Animation speed in milliseconds                                                                                                                                                          |
-| in / out       |  String  | `zoom-in / zoom-out` |         | The cursor property specifies the mouse cursor to be displayed when pointing over an element                                                                                             |
-| overlay        |  String  |                      |         | Overlay layer color and opacity `rgba(255,255,255,0.9);` or `hsla(0, 0%, 100%, 0.9);`                                                                                                    |
-| data-zooom-big |  string  |                      |         | The large version of the photo is the views instead of the thumbnail                                                                                                                     |
-| onResize       | Function |                      |         | A function that can be used to block clicking on an image. See example below - How to prevent zoom-in/out images                                                                         |
-| onOpen         | Function |                      |         | A helper function with which we can, for example, add text from the caption to the photo to show when zooming in on the photo. In the function we have access to the image element       |
-| onClose        | Function |                      |         | A function that runs when the photo is closed. It can be combined with the function `onOpen` see example. As in the previous `onOpen` function, here we have access to the image element |
+| prop           |   type   |       default        | required | description                                                                                                                               |
+| -------------- | :------: | :------------------: | :------: | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| zIndex         |  Number  |         `1`          |          | Controls the stacking order of the zoomed layer                                                                                           |
+| animationTime  |  Number  |        `300`         |          | Zoom animation duration in milliseconds                                                                                                   |
+| cursor.in/out  |  String  | `zoom-in / zoom-out` |          | CSS cursor value shown when hovering over zoomable / zoomed images                                                                        |
+| overlay        |  String  |                      |          | Background overlay color and opacity — e.g. `rgba(255,255,255,0.9)` or `hsla(0,0%,100%,0.9)`                                             |
+| data-zooom-big |  string  |                      |          | URL of the full-size image to load on click instead of the thumbnail                                                                      |
+| onResize       | Function |                      |          | Called on window resize. Return `true` to disable zooming (e.g. on small screens)                                                        |
+| onOpen         | Function |                      |          | Callback fired when an image is zoomed in. Receives the image element as argument                                                         |
+| onClose        | Function |                      |          | Callback fired when the zoomed image is closed. Receives the image element as argument                                                    |
 
 ## Minimal configuration
 
@@ -105,121 +74,176 @@ npm run prod
 new Zooom("img-zoom");
 ```
 
-## Sample configuration
+## Full configuration example
 
 ```javascript
 new Zooom("img-zoom", {
-  // control layer positions
   zIndex: 9,
-
-  // animation time in number
   animationTime: 300,
-
-  // cursor type
   cursor: {
     in: "zoom-in",
     out: "zoom-out",
   },
-
-  // overlay layer color and opacity, rgba, hsla, ...
   overlay: "rgba(255,255,255,0.9)",
-
-  // callback function
-  // see usage example docs/index.html
   onResize: function () {},
   onOpen: function (element) {},
   onClose: function (element) {},
 });
 ```
 
-## How to use Zooom with Bootstrap Carousel
+## Plugin system
 
-See an [example](https://codepen.io/Tomik23/full/VwPmLqX)
+Zooom supports plugins via the `.use()` method, which can be chained:
+
+```javascript
+new Zooom("img-zoom", { ... }).use(plugin1).use(plugin2);
+```
+
+### SliderPlugin
+
+Adds previous/next navigation buttons, keyboard arrow-key support, and touch swipe gestures for browsing between images.
+
+Add the slider script after the core library:
+
+```html
+<script src="path/to/zooom.min.js"></script>
+<script src="path/to/zooom-slider.min.js"></script>
+```
+
+#### With slide animation
 
 ```javascript
 new Zooom("img-zoom", {
   zIndex: 9,
-
-  // animation time in number
   animationTime: 300,
-
-  // cursor type
-  cursor: {
-    in: "zoom-in",
-    out: "zoom-out",
-  },
-
-  // overlay layer color and opacity, rgba, hsla, ...
   overlay: "rgba(255,255,255,0.9)",
-
-  // callback function
-  // see usage example docs/index.html
-  onOpen: function (element) {
-    // we stop automatic scrolling when we do zoom images
-    $(".carousel").carousel("pause");
-  },
-
-  onClose: function (element) {
-    // we restart the carousels after closing the photo
-    $(".carousel").carousel("cycle");
-  },
-});
+}).use(new ZooomSlider({ effect: "slide" }));
 ```
 
-## How to prevent zoom-in/out images
-
-Below is an example showing how to block a click when the browser width is less than 600px
-Of course, here is an example with the width of the window, but nothing prevents you from using it in a different way. The most important thing is to return the logical value - `true/false`. Each `reduction/reduction` of the window reads this variable and blocks the click.
+#### Without animation (instant swap)
 
 ```javascript
 new Zooom("img-zoom", {
-  // we set different types of cursor depending on
-  // the width of the window below we pass
-  // the variables for the cursor styles set
-  // dynamically in the calback onResize function
+  zIndex: 9,
+  animationTime: 300,
+  overlay: "rgba(255,255,255,0.9)",
+}).use(new ZooomSlider());
+```
+
+#### SliderPlugin options
+
+| prop    |  type   | default | description                                                                             |
+| ------- | :-----: | :-----: | --------------------------------------------------------------------------------------- |
+| effect  | String  |         | Set to `"slide"` to enable slide-transition navigation. Omit for an instant image swap. |
+| counter | Boolean | `false` | Show an image counter in the top-left corner, e.g. `1 / 10`.                           |
+
+Navigation is triggered by:
+- **Buttons** — prev/next arrows shown at the sides of the zoomed image
+- **Keyboard** — `←` / `→` arrow keys
+- **Touch** — swipe left/right (min 50 px)
+
+#### With counter
+
+```javascript
+new Zooom("img-zoom", {
+  zIndex: 9,
+  animationTime: 300,
+  overlay: "rgba(255,255,255,0.9)",
+}).use(new ZooomSlider({ effect: "slide", counter: true }));
+```
+
+### Writing your own plugin
+
+A plugin is any object that implements the `ZooomPlugin` interface:
+
+```typescript
+interface ZooomPlugin {
+  name: string;
+  install(ctx: ZooomContext): void;
+}
+```
+
+The `ZooomContext` passed to `install` exposes:
+
+```typescript
+interface ZooomContext {
+  readonly images: HTMLElement[];       // all registered images
+  readonly currentImage: HTMLElement;   // currently zoomed image
+  readonly animTime: number;            // animation duration (ms)
+  readonly zIndex: number;              // base z-index
+  readonly overlayLayer: HTMLDivElement;
+  on(event: 'open' | 'close' | 'keydown', handler: Function): void;
+  zoomIn(image: HTMLElement, instant?: boolean): void;
+  zoomOut(): void;
+  addStyle(css: string): void;
+  setCurrentImage(image: HTMLElement): void;
+  setClone(img: HTMLImageElement): void;
+  notifyOpen(image: HTMLElement): void;
+  notifyClose(image: HTMLElement): void;
+}
+```
+
+## Loading a large image
+
+Display a thumbnail and load the full-size image only on click using `data-zooom-big`:
+
+```html
+<img
+  class="img-zoom"
+  loading="lazy"
+  width="576"
+  height="384"
+  data-zooom-big="./full-image.jpg"
+  src="./image-thumbnail.jpg"
+/>
+```
+
+## Prevent zoom on small screens
+
+Return `true` from `onResize` to disable zooming:
+
+```javascript
+new Zooom("img-zoom", {
   cursor: {
     in: "var(--zoom-in)",
     out: "var(--zoom-out)",
   },
   onResize: function () {
-    // we set the page width from which it will
-    // be possible to click on the image
-    let responsiveMin = 600;
-
-    // we check the width of the browser window
     const windowWidth =
       window.innerWidth ||
       document.documentElement.clientWidth ||
       document.body.clientWidth;
 
-    // we return the boolean value 'true/false'
-    // the value 'true' blocks clicking the image
-    const widthWindow = windowWidth < responsiveMin ? true : false;
+    const isMobile = windowWidth < 600;
 
-    // I set different cursors depending on the width of the window
     const root = document.documentElement;
-    root.style.setProperty("--zoom-in", widthWindow ? "default" : "zoom-in");
-    root.style.setProperty("--zoom-out", widthWindow ? "default" : "zoom-out");
+    root.style.setProperty("--zoom-in", isMobile ? "default" : "zoom-in");
+    root.style.setProperty("--zoom-out", isMobile ? "default" : "zoom-out");
 
-    return widthWindow;
+    return isMobile; // true blocks zooming
   },
 });
 ```
 
+## Clone the repo and run locally
+
+```bash
+git clone https://github.com/tomickigrzegorz/zooom.js.git
+cd zooom
+yarn
+```
+
+```bash
+# start dev server with live reload
+yarn dev
+
+# production build
+yarn build
+```
+
 ## Browser support
 
-Zooom supports all major browsers including IE 11 and above. It also works in the overflow element.
-
-If you want to use [data-zooom-big](https://tomickigrzegorz.github.io/zooom.js/#large-photo)
-on IE browser you have to use polyfill for promise https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js
-
-### local files
-
-- dist/zooom.ie.min.js
-
-### cdn
-
-- https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.3/dist/zooom.ie.min.js
+Zooom supports all modern browsers (Chrome, Firefox, Safari, Edge).
 
 ## License
 

@@ -10,8 +10,11 @@ import pkg from "./package.json";
 const { PRODUCTION } = process.env;
 
 const input = "sources/js/index.ts";
+const sliderInput = "sources/js/plugins/slider.ts";
 
 const banner = `/*!\n* Zooom.js - the easiest way to enlarge a photo\n* @version v${pkg.version}\n* @link ${pkg.homepage}\n* @license ${pkg.license}\n*/`;
+
+const sliderBanner = `/*!\n* Zooom.js SliderPlugin - navigation plugin for Zooom\n* @version v${pkg.version}\n* @link ${pkg.homepage}\n* @license ${pkg.license}\n*/`;
 
 const sharedPlugins = (target) => {
   return [
@@ -132,16 +135,97 @@ export default [
     },
   },
   // --------------------------------------------------
-  // ie
+  // slider plugin — docs (dev/demo)
   {
-    input,
+    input: sliderInput,
     watch: false,
-    plugins: [...sharedPlugins("es5")],
+    plugins: [...sharedPlugins("es6")],
     output: {
-      banner,
-      file: "dist/zooom.ie.min.js",
+      banner: sliderBanner,
+      file: "docs/zooom-slider.min.js",
       format: "iife",
-      name: "Zooom",
+      name: "ZooomSlider",
+      sourcemap: true,
+      plugins: [terser({ ...terserConfig })],
+    },
+  },
+  // --------------------------------------------------
+  // slider plugin — iife
+  {
+    input: sliderInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: sliderBanner,
+      file: "dist/zooom-slider.js",
+      format: "iife",
+      name: "ZooomSlider",
+      sourcemap: true,
+    },
+  },
+  {
+    input: sliderInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: sliderBanner,
+      file: "dist/zooom-slider.min.js",
+      format: "iife",
+      name: "ZooomSlider",
+      sourcemap: false,
+      plugins: [terser({ ...terserConfig })],
+    },
+  },
+  // --------------------------------------------------
+  // slider plugin — umd
+  {
+    input: sliderInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: sliderBanner,
+      file: "dist/zooom-slider.umd.js",
+      format: "umd",
+      name: "ZooomSlider",
+      sourcemap: true,
+    },
+  },
+  {
+    input: sliderInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: sliderBanner,
+      file: "dist/zooom-slider.umd.min.js",
+      format: "umd",
+      name: "ZooomSlider",
+      sourcemap: false,
+      plugins: [terser({ ...terserConfig })],
+    },
+  },
+  // --------------------------------------------------
+  // slider plugin — esm
+  {
+    input: sliderInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: sliderBanner,
+      file: "dist/zooom-slider.es.js",
+      format: "es",
+      name: "ZooomSlider",
+      sourcemap: true,
+    },
+  },
+  {
+    input: sliderInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: sliderBanner,
+      file: "dist/zooom-slider.es.min.js",
+      format: "es",
+      name: "ZooomSlider",
       sourcemap: false,
       plugins: [terser({ ...terserConfig })],
     },

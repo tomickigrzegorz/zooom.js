@@ -1,3 +1,27 @@
+## v1.2.0 (2026-03-12)
+
+### Added
+
+- **Plugin system** — new `.use(plugin)` chainable API for extending Zooom with plugins
+- **SliderPlugin** — separate `zooom-slider.js` bundle providing previous/next navigation buttons and keyboard arrow-key support
+  - `effect: "slide"` — animated slide transition between images
+  - no option — instant image swap without animation
+- New `ZooomContext` interface exposing `images`, `currentImage`, `animTime`, `zIndex`, `overlayLayer`, lifecycle events (`open`, `close`, `keydown`) and methods (`zoomIn`, `zoomOut`, `addStyle`, `setCurrentImage`, `setClone`, `notifyOpen`, `notifyClose`)
+
+### Changed
+
+- Clone element switched from `position: absolute` to `position: fixed` — eliminates clipping by `body { overflow: hidden }` during zoom animation
+- Removed IE (ES5) build targets from rollup config (`zooom.ie.min.js`, `zooom-slider.ie.min.js`)
+
+### Fixed
+
+- Images with `loading="lazy"` staying permanently invisible after navigating with SliderPlugin and then closing
+- Visual scaling artifact on first zoom-in click (caused by overflow clipping of absolute-positioned clone)
+- Clone leak in DOM when rapidly clicking navigation buttons during an ongoing slide animation
+- `onOpen` / `onClose` user callbacks and `figcaption` descriptions not firing during slide navigation
+
+---
+
 ## v1.1.3 (2022-04-10)
 
 ### Fixed

@@ -272,48 +272,48 @@
             loading="lazy"
             width="576"
             height="384"
-            data-zooom-big="https://grzegorztomicki.pl/images/wieden/1200/IMG_6325.jpg"
-            src="https://grzegorztomicki.pl/images/wieden/576/IMG_6325.jpg"
+            data-zooom-big="https://grzegorztomicki.pl/images/wieden/1200/IMG_6325.webp"
+            src="https://grzegorztomicki.pl/images/wieden/576/IMG_6325.webp"
           />
           <img
             class="responsive img-zoom"
             loading="lazy"
             width="576"
             height="384"
-            data-zooom-big="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/1200/IMG_7167.jpg"
-            src="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/576/IMG_7167.jpg"
+            data-zooom-big="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/1200/IMG_7167.webp"
+            src="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/576/IMG_7167.webp"
           />
           <img
             class="responsive img-zoom"
             loading="lazy"
             width="576"
             height="384"
-            data-zooom-big="https://grzegorztomicki.pl/images/maroko/1200/IMG_0738.jpg"
-            src="https://grzegorztomicki.pl/images/maroko/576/IMG_0738.jpg"
+            data-zooom-big="https://grzegorztomicki.pl/images/maroko/1200/IMG_0738.webp"
+            src="https://grzegorztomicki.pl/images/maroko/576/IMG_0738.webp"
           />
           <img
             class="responsive img-zoom"
             loading="lazy"
             width="576"
             height="384"
-            data-zooom-big="https://grzegorztomicki.pl/images/chiny/1200/IMG_8112.jpg"
-            src="https://grzegorztomicki.pl/images/chiny/576/IMG_8112.jpg"
+            data-zooom-big="https://grzegorztomicki.pl/images/chiny/1200/IMG_8112.webp"
+            src="https://grzegorztomicki.pl/images/chiny/576/IMG_8112.webp"
           />
           <img
             class="responsive img-zoom"
             loading="lazy"
             width="576"
             height="384"
-            data-zooom-big="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/1200/IMG_6872.jpg"
-            src="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/576/IMG_6872.jpg"
+            data-zooom-big="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/1200/IMG_6872.webp"
+            src="https://grzegorztomicki.pl/images/kilkudniowa-wycieczka/576/IMG_6872.webp"
           />
           <img
             class="responsive img-zoom"
             loading="lazy"
             width="576"
             height="384"
-            data-zooom-big="https://grzegorztomicki.pl/images/turcja/1200/IMG_4264.jpg"
-            src="https://grzegorztomicki.pl/images/turcja/576/IMG_4264.jpg"
+            data-zooom-big="https://grzegorztomicki.pl/images/turcja/1200/IMG_4264.webp"
+            src="https://grzegorztomicki.pl/images/turcja/576/IMG_4264.webp"
           />
         </div>
       </section>
@@ -358,6 +358,7 @@
     </div>
 
     <script src="./zooom.min.js"></script>
+    <script src="./zooom-slider.min.js"></script>
     <script>
       new Zooom("img-zoom", {
         zIndex: 9,
@@ -373,11 +374,8 @@
         // rgba, hsla, ...
         overlay: "rgba(255, 255, 255, 0.9)",
 
-        navigation: true,
-        navigationEffect: "slide",
-
         onResize: function () {
-          let responsiveMin = 600;
+          let responsiveMin = 200;
           const windowWidth =
             window.innerWidth ||
             document.documentElement.clientWidth ||
@@ -429,7 +427,7 @@
             descriptionText.classList.add("animation-off");
           }
         },
-      });
+      }).use(new ZooomSlider({ effect: "slide", counter: true }));
     </script>
   </body>
 </html>
