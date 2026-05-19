@@ -1,4 +1,19 @@
-import { fadeIn, fadeOut, debounce } from "./utils/function";
+import { fadeIn, fadeOut, debounce, loadImage } from "./utils/function";
+import type {
+  ConstructorObject,
+  ObjectCursor,
+  ZooomContext,
+  ZooomEvent,
+  ZooomPlugin,
+} from "./types";
+
+export type {
+  ConstructorObject,
+  ObjectCursor,
+  ZooomContext,
+  ZooomEvent,
+  ZooomPlugin,
+};
 
 /**
  * @class Zooom
@@ -7,24 +22,25 @@ export default class Zooom {
   private _element: string;
   private _dataAttr: string;
   private _overlayId: string;
-  private _imageZooom: any;
+  _imageZooom!: HTMLImageElement;
   private _clonedImg: HTMLImageElement;
   private _zIndex: number;
   private _cursorIn?: string;
   private _cursorOut?: string;
   private _overlay?: string;
-  private _animTime?: number;
-  private _overlayLayer: HTMLDivElement;
+  _animTime?: number;
+  _overlayLayer: HTMLDivElement;
   private _onResize: Function;
   private _onOpen: Function;
   private _onClose: Function;
+  _allImages: HTMLElement[];
+  private _plugins: ZooomPlugin[];
+  private _listeners: Map<ZooomEvent, Array<(...args: any[]) => void>>;
+  // clones produced by the core's initial zoom — used by _reset to decide animation style
+  private _coreClones: WeakSet<HTMLImageElement> = new WeakSet();
+  // element that had focus before the zoom opened — restored on close
+  private _returnFocus: HTMLElement | null = null;
 
-  /**
-   * @constructor
-   *
-   * @param className
-   * @param object
-   */
   constructor(
     className: string,
     {
@@ -44,74 +60,118 @@ export default class Zooom {
     this._overlayId = "zooom-overlay";
     this._overlayLayer = document.createElement("div");
     this._clonedImg = document.createElement("img");
+    this._allImages = [];
+    this._plugins = [];
+    this._listeners = new Map();
 
-    // callback function
     this._onResize = onResize;
     this._onOpen = onOpen;
     this._onClose = onClose;
 
     this._overlay = overlay;
 
-    // create cursor
     this._cursorType(cursor);
 
-    // create overlay
-    // this.overlayConfig(overlay);
-
-    // creating overlay layer and adding to body
     this._overlayLayer.id = this._overlayId;
     document.body.appendChild(this._overlayLayer);
 
-    // add to all image data attribute false
-    [].slice
-      .call(document.querySelectorAll(`.${className}`))
-      .map((element: HTMLElement) => {
-        element.setAttribute("data-zoomed", "false");
-      });
+    this._allImages = [].slice.call(
+      document.querySelectorAll(`.${className}`)
+    );
+    this._allImages.forEach((element: HTMLElement) => {
+      element.setAttribute("data-zoomed", "false");
+      // make the image focusable so keyboard users can trigger zoom with Enter/Space
+      if (!element.hasAttribute("tabindex")) element.setAttribute("tabindex", "0");
+    });
 
-    // add event listener
+    window.addEventListener("keydown", this._handleKeydown);
+
     this._eventHandle();
-
-    // create style and add to head
     this._createStyleAndAddToHead();
   }
 
-  /**
-   * @method eventHandle - add event listener
-   */
+  use = (plugin: ZooomPlugin): this => {
+    plugin.install(this._createContext());
+    this._plugins.push(plugin);
+    return this;
+  };
+
+  _createContext = (): ZooomContext => {
+    const self = this;
+    return {
+      get images() { return self._allImages; },
+      get currentImage() { return self._imageZooom; },
+      get currentClone() {
+        return self._clonedImg && self._clonedImg.parentNode ? self._clonedImg : null;
+      },
+      get animTime() { return self._animTime!; },
+      get zIndex() { return self._zIndex; },
+      get overlayLayer() { return self._overlayLayer; },
+      on(event: ZooomEvent, handler: (...args: any[]) => void) {
+        if (!self._listeners.has(event)) {
+          self._listeners.set(event, []);
+        }
+        self._listeners.get(event)!.push(handler);
+      },
+      zoomIn(image: HTMLElement, instant = false) {
+        self._imageZooom = image as HTMLImageElement;
+        self._zooomInit(instant);
+      },
+      zoomOut() {
+        self._handleEvent();
+      },
+      addStyle(css: string) {
+        document.head.insertAdjacentHTML("beforeend", `<style>${css}</style>`);
+      },
+      setCurrentImage(image: HTMLElement) {
+        self._imageZooom = image as HTMLImageElement;
+        // keep dialog label in sync as plugins navigate between images
+        self._overlayLayer.setAttribute(
+          "aria-label",
+          self._imageZooom.alt || "Zoomed image"
+        );
+      },
+      setClone(img: HTMLImageElement) {
+        self._clonedImg = img;
+        if (!img.alt) img.alt = self._imageZooom?.alt || "";
+        img.tabIndex = -1;
+        img.focus({ preventScroll: true });
+      },
+      notifyOpen(image: HTMLElement) {
+        self._onOpen(image);
+        self._emit('open', image);
+      },
+      notifyClose(image: HTMLElement) {
+        self._onClose(image);
+        self._emit('close', image);
+      },
+    };
+  };
+
+  _emit = (event: ZooomEvent, ...args: any[]) => {
+    (this._listeners.get(event) || []).forEach(fn => fn(...args));
+  };
+
   _eventHandle = () => {
     window.addEventListener(
       "resize",
       debounce(() => this._event(), 70)
     );
-
     window.addEventListener("DOMContentLoaded", this._event);
   };
 
-  /**
-   * @method event - scroll, resize, click event
-   */
   _event = () => {
-    ["scroll", "resize", "click"].map((type) => {
-      if (this._onResize()) {
-        window.removeEventListener(
-          type,
-          type === "click" ? this._handleClick : this._handleEvent
-        );
+    const shouldRemove = this._onResize();
+    ["scroll", "resize", "click"].forEach((type) => {
+      const handler = (type === "click" ? this._handleClick : this._handleEvent) as EventListener;
+      if (shouldRemove) {
+        window.removeEventListener(type, handler);
       } else {
-        window.addEventListener(
-          type,
-          type === "click" ? this._handleClick : this._handleEvent
-        );
+        window.addEventListener(type, handler);
       }
     });
   };
 
-  /**
-   * @method handleClick - click event
-   *
-   * @param {Object} cursor - cursor type
-   */
   _cursorType = (
     { in: zIn, out: zOut }: ObjectCursor = { in: "zoom-in", out: "zoom-out" }
   ) => {
@@ -119,20 +179,15 @@ export default class Zooom {
     this._cursorOut = `cursor: ${zOut};`;
   };
 
-  /**
-   * @method handleClick - click event
-   *
-   * @param {Event} event - event
-   */
-  _handleClick = (event: any) => {
-    let { target } = event;
+  _handleClick = (event: MouseEvent) => {
+    const target = event.target as HTMLImageElement;
     const dataZoomed = target.getAttribute(this._dataAttr);
 
     if (dataZoomed === "false") {
       const bigImage = target.getAttribute("data-zooom-big");
 
       if (bigImage) {
-        this._loadImage(target, bigImage).then(() => {
+        loadImage(target, bigImage).then(() => {
           this._imageZooom = target;
           this._zooomInit();
           document.body.classList.remove("zooom-loading");
@@ -146,53 +201,59 @@ export default class Zooom {
     }
   };
 
-  /**
-   * @method loadImage - cload image if data-zooom-big is set
-   *
-   * @param {HTMLImageElement} target
-   * @param {String} bigImage
-   */
-  _loadImage = (target: HTMLImageElement, bigImage: string) => {
-    return new Promise<string>((resolve, reject) => {
-      let newImage = new Image();
-
-      newImage.onload = function () {
-        resolve("image loaded");
-      };
-      newImage.onerror = function () {
-        reject(`image ${bigImage} not loaded`);
-      };
-
-      document.body.classList.add("zooom-loading");
-
-      newImage.src = bigImage;
-      target.src = newImage.src;
-      target.removeAttribute("data-zooom-big");
-    });
-  };
-
-  /**
-   * @method handleEvent
-   */
   _handleEvent = () => {
     const imagezooom = document.querySelector(`[${this._dataAttr}="true"]`);
-
     if (!imagezooom) return;
 
-    // reset all style
     this._reset();
 
     setTimeout(() => {
       imagezooom.setAttribute(this._dataAttr, "false");
     }, this._animTime);
-    // callback function onClose
+
     this._onClose(this._imageZooom);
+    this._emit('close', this._imageZooom);
     fadeOut(this._overlayLayer);
+
+    this._overlayLayer.removeAttribute("role");
+    this._overlayLayer.removeAttribute("aria-modal");
+    this._overlayLayer.removeAttribute("aria-label");
+
+    const restore = this._returnFocus;
+    this._returnFocus = null;
+    // defer until after _reset's visibility-removal timeout — a hidden element can't receive focus
+    setTimeout(() => {
+      if (restore && typeof restore.focus === "function") {
+        restore.focus({ preventScroll: true });
+      }
+    }, this._animTime);
   };
 
-  /**
-   * @method createStyleAndAddToHead - create style and add to head
-   */
+  _handleKeydown = (event: KeyboardEvent) => {
+    const isZoomed = !!document.querySelector(`[${this._dataAttr}="true"]`);
+
+    if (!isZoomed) {
+      // keyboard activation: Enter or Space on a focused zoomable image opens it
+      if (event.key === "Enter" || event.key === " ") {
+        const target = event.target as HTMLImageElement;
+        if (target && this._allImages.indexOf(target) >= 0) {
+          event.preventDefault();
+          target.click();
+        }
+      }
+      return;
+    }
+
+    this._emit('keydown', event);
+    if (event.key === "Escape") {
+      this._handleEvent();
+    } else if (event.key === "Tab") {
+      // focus trap: keep Tab/Shift+Tab inside the zoom layer
+      event.preventDefault();
+      this._clonedImg.focus({ preventScroll: true });
+    }
+  };
+
   _createStyleAndAddToHead = () => {
     const background = `#zooom-overlay{position:fixed;pointer-events:none;width:100%;background:rgba(255,255,255,0);height:100%;top:0;justify-content:center;align-items:center;z-index:${this._zIndex};margin:auto;-webkit-transition:background ${this._animTime}ms ease-in-out;transition:background ${this._animTime}ms ease-in-out;${this._cursorOut}}`;
 
@@ -206,41 +267,40 @@ export default class Zooom {
 
     document.head.insertAdjacentHTML(
       "beforeend",
-      `<style>${css}${background}</style>`
+      `<style>html{scrollbar-gutter:stable}${css}${background}</style>`
     );
   };
 
-  /**
-   * @method zooomInit - fadein, callback function onOpen, cloneImg
-   */
-  _zooomInit = () => {
+  _zooomInit = (instant = false) => {
+    document.body.style.overflow = "hidden";
     this._imageZooom.setAttribute(this._dataAttr, "true");
 
-    this._cloneImg(this._imageZooom);
+    // only capture return focus on the initial open — not on slider navigation,
+    // where _imageZooom is reassigned but the original triggering element is still the right target
+    if (!this._returnFocus) {
+      const active = document.activeElement as HTMLElement | null;
+      this._returnFocus = active && active !== document.body ? active : this._imageZooom;
+    }
+    this._overlayLayer.setAttribute("role", "dialog");
+    this._overlayLayer.setAttribute("aria-modal", "true");
+    this._overlayLayer.setAttribute(
+      "aria-label",
+      this._imageZooom.alt || "Zoomed image"
+    );
 
+    this._cloneImg(this._imageZooom, instant);
     fadeIn(this._overlayLayer, this._overlay);
-
-    // callback function
     this._onOpen(this._imageZooom);
+    this._emit('open', this._imageZooom);
   };
 
-  /**
-   * @method cloneImg - clone image
-   *
-   * @param {HTMLImageElement} image - clone image and add to overlay layer
-   */
-  _cloneImg = (image: HTMLImageElement) => {
-    let src = image.currentSrc || image.src;
+  _cloneImg = (image: HTMLImageElement, instant = false) => {
+    this._clonedImg = document.createElement("img");
+    let src = image.dataset.zoooomSrc || image.currentSrc || image.src;
 
     let { width, height, left, top } = image.getBoundingClientRect();
 
     const { clientWidth, clientHeight, offsetWidth } = document.documentElement;
-
-    const scrollTop =
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0;
 
     const scroll = clientWidth - offsetWidth;
 
@@ -249,7 +309,9 @@ export default class Zooom {
 
     const ratio = height / width;
 
-    let maxWidth = image.naturalWidth;
+    let maxWidth = image.naturalWidth
+      || parseInt(image.getAttribute("width") ?? "0")
+      || width;
 
     maxWidth >= clientWidth && (maxWidth = clientWidth);
     const maxHeight = maxWidth * ratio;
@@ -261,38 +323,63 @@ export default class Zooom {
     const img = this._clonedImg;
 
     img.src = src;
+    img.alt = image.alt || "";
     img.width = width;
     img.height = height;
-    img.style.top = `${top + scrollTop}px`;
+    // position:fixed — not clipped by body{overflow:hidden} during animation
+    img.style.position = "fixed";
+    img.style.top = `${top}px`;
     img.style.left = `${left}px`;
     img.style.width = `${width}px`;
     img.style.height = `${height}px`;
     img.className = "zooom-clone";
+    img.tabIndex = -1;
+
+    this._imageZooom.style.setProperty("visibility", "hidden");
 
     document.body.appendChild(img);
 
     img.offsetWidth;
     img.setAttribute("data-zoomed", "true");
-    img.style.position = "absolute";
+    if (instant) img.style.transition = "none";
     img.style.transform = `matrix(${scale},0,0,${scale},${X},${Y})`;
 
-    // hide orginal image
-    setTimeout(() => {
-      this._imageZooom.style.setProperty("visibility", "hidden");
-    }, 50);
+    // mark as core-initiated so _reset() animates back to origin (vs. plugin clones which fade)
+    this._coreClones.add(img);
 
-    // remove image
-    img.addEventListener("click", this._reset);
+    img.focus({ preventScroll: true });
   };
 
-  /**
-   * @method reset - reset all style
-   */
   _reset = () => {
-    this._clonedImg.style.removeProperty("transform");
+    const cloneToRemove = this._clonedImg;
+    const originalImg = this._imageZooom;
+    const t = this._animTime;
+
+    // core-initiated clones animate back to origin; plugin-created clones (e.g. SliderPlugin) fade out
+    const hasReturnPosition = this._coreClones.has(cloneToRemove);
+
+    if (hasReturnPosition) {
+      const { top, bottom, left, right } = originalImg.getBoundingClientRect();
+      const { clientHeight, clientWidth } = document.documentElement;
+      const inViewport = bottom > 0 && top < clientHeight && right > 0 && left < clientWidth;
+
+      if (inViewport) {
+        cloneToRemove.style.transition = `transform ${t}ms ease-in-out`;
+        cloneToRemove.style.removeProperty("transform");
+      } else {
+        cloneToRemove.style.transition = `opacity ${t}ms ease-in-out`;
+        cloneToRemove.style.opacity = "0";
+      }
+    } else {
+      // navigated clone — fade out in place (no return-to-origin animation)
+      cloneToRemove.style.transition = `opacity ${t}ms ease-in-out`;
+      cloneToRemove.style.opacity = "0";
+    }
+
     setTimeout(() => {
-      this._clonedImg.parentNode?.removeChild(this._clonedImg);
-      this._imageZooom.style.removeProperty("visibility");
-    }, this._animTime);
+      cloneToRemove.parentNode?.removeChild(cloneToRemove);
+      originalImg.style.removeProperty("visibility");
+      document.body.style.overflow = "";
+    }, t);
   };
 }
