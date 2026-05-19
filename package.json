@@ -2,16 +2,38 @@
   "name": "zooom",
   "version": "1.2.0",
   "description": "The easiest way to zooming a photo",
-  "main": "docs/zooom.min.js",
-  "browser": "docs/zooom.umd.min.js",
-  "module": "docs/zooom.ems.min.js",
+  "main": "dist/zooom.umd.min.js",
+  "browser": "dist/zooom.umd.min.js",
+  "module": "dist/zooom.es.min.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/zooom.es.min.js",
+      "require": "./dist/zooom.umd.min.js",
+      "default": "./dist/zooom.umd.min.js"
+    },
+    "./slider": {
+      "types": "./dist/types/plugins/slider.d.ts",
+      "import": "./dist/zooom-slider.es.min.js",
+      "require": "./dist/zooom-slider.umd.min.js",
+      "default": "./dist/zooom-slider.umd.min.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "author": "Grzegorz Tomicki",
   "license": "MIT",
   "homepage": "https://github.com/tomickigrzegorz/zooom.js",
   "scripts": {
     "dev": "concurrently \"yarn style:watch\" \"yarn watch\"",
-    "prod": "yarn style:prod && yarn build",
+    "prod": "yarn style:prod && yarn build && yarn build:types",
     "build": "rollup -c --environment PRODUCTION",
+    "build:types": "tsc -p tsconfig.types.json",
     "watch": "rollup -c -w",
     "style:watch": "sass --watch sources/scss:docs",
     "style:prod": "sass sources/scss:docs"

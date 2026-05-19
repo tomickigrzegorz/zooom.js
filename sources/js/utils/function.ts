@@ -34,4 +34,20 @@ const debounce = (fn: Function, ms = 300) => {
   };
 };
 
-export { fadeIn, fadeOut, debounce };
+/**
+ * @function loadImage - swap thumbnail src for a full-size image, resolving when loaded
+ */
+const loadImage = (target: HTMLImageElement, bigImage: string): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    const newImage = new Image();
+    newImage.onload = () => resolve("image loaded");
+    newImage.onerror = () => reject(`image ${bigImage} not loaded`);
+    document.body.classList.add("zooom-loading");
+    newImage.src = bigImage;
+    target.src = newImage.src;
+    target.dataset.zoooomSrc = newImage.src;
+    target.removeAttribute("data-zooom-big");
+  });
+};
+
+export { fadeIn, fadeOut, debounce, loadImage };

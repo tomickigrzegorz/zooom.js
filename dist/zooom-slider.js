@@ -8,6 +8,28 @@ var ZooomSlider = (function () {
     'use strict';
 
     /**
+     * @function fadeIn - fade in overlay div layer
+     *
+     * @param {HTMLDivElement} overlay - add class and opacity to overlay div layer
+     * @param {Stieng} bgrWithOpacity - opacity of overlay div layer
+     */
+    /**
+     * @function loadImage - swap thumbnail src for a full-size image, resolving when loaded
+     */
+    const loadImage = (target, bigImage) => {
+        return new Promise((resolve, reject) => {
+            const newImage = new Image();
+            newImage.onload = () => resolve("image loaded");
+            newImage.onerror = () => reject(`image ${bigImage} not loaded`);
+            document.body.classList.add("zooom-loading");
+            newImage.src = bigImage;
+            target.src = newImage.src;
+            target.dataset.zoooomSrc = newImage.src;
+            target.removeAttribute("data-zooom-big");
+        });
+    };
+
+    /**
      * SliderPlugin — navigation between zoomed images
      * Usage: new Zooom('zooom', options).use(new SliderPlugin({ effect: 'slide' }))
      */
@@ -18,12 +40,12 @@ var ZooomSlider = (function () {
             this._nextBtn = null;
             this._clonedImg = null;
             this._isSliding = false;
-            this._slideTimeout = null;
-            this._pendingOutgoing = null;
-            this._pendingOutgoingOriginal = null;
+            this._pendingSlide = null;
             this._currentImage = null;
             this._touchStartX = 0;
             this._counterEl = null;
+            this._installed = false;
+            this._preloaded = new Set();
             this._handleTouchStart = (event) => {
                 if (!this._currentImage)
                     return;
@@ -41,6 +63,7 @@ var ZooomSlider = (function () {
         }
         install(ctx) {
             this._ctx = ctx;
+            this._installed = true;
             if (ctx.images.length > 1) {
                 ctx.addStyle(this._buildCss());
                 this._createButtons();
@@ -48,40 +71,33 @@ var ZooomSlider = (function () {
                     this._createCounter();
             }
             ctx.on('open', (image) => {
+                if (!this._installed)
+                    return;
+                this._preloadNeighbours(image);
                 // during slide navigation we manage the clone ourselves
                 if (this._isSliding)
                     return;
                 this._currentImage = image;
-                this._clonedImg = document.querySelector('.zooom-clone');
+                this._clonedImg = ctx.currentClone;
                 if (this._clonedImg) {
                     this._clonedImg.addEventListener('click', () => ctx.zoomOut());
                 }
                 this._showNavigation();
             });
             ctx.on('close', () => {
-                var _a;
+                if (!this._installed)
+                    return;
                 // during slide navigation we manage the state ourselves
                 if (this._isSliding)
                     return;
-                if (this._slideTimeout !== null) {
-                    clearTimeout(this._slideTimeout);
-                    this._slideTimeout = null;
-                }
-                // restore previous image if its timeout was cancelled
-                if (this._pendingOutgoing) {
-                    (_a = this._pendingOutgoing.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(this._pendingOutgoing);
-                    this._pendingOutgoing = null;
-                }
-                if (this._pendingOutgoingOriginal) {
-                    // data-zoomed already set to false at slide start; just restore visibility
-                    this._pendingOutgoingOriginal.style.removeProperty('visibility');
-                    this._pendingOutgoingOriginal = null;
-                }
+                this._cancelPendingSlide();
                 this._hideNavigation();
                 this._currentImage = null;
                 this._clonedImg = null;
             });
             ctx.on('keydown', (event) => {
+                if (!this._installed)
+                    return;
                 if (event.key === 'ArrowLeft')
                     this._navigateBy(-1);
                 else if (event.key === 'ArrowRight')
@@ -89,6 +105,44 @@ var ZooomSlider = (function () {
             });
             document.addEventListener('touchstart', this._handleTouchStart, { passive: true });
             document.addEventListener('touchend', this._handleTouchEnd, { passive: true });
+        }
+        uninstall() {
+            var _a, _b, _c;
+            this._installed = false;
+            this._cancelPendingSlide();
+            (_a = this._prevBtn) === null || _a === void 0 ? void 0 : _a.remove();
+            (_b = this._nextBtn) === null || _b === void 0 ? void 0 : _b.remove();
+            (_c = this._counterEl) === null || _c === void 0 ? void 0 : _c.remove();
+            this._prevBtn = null;
+            this._nextBtn = null;
+            this._counterEl = null;
+            this._preloaded.clear();
+            document.removeEventListener('touchstart', this._handleTouchStart);
+            document.removeEventListener('touchend', this._handleTouchEnd);
+        }
+        _preloadNeighbours(image) {
+            var _a;
+            const radius = Math.max(0, (_a = this._options.preload) !== null && _a !== void 0 ? _a : 0);
+            if (radius === 0)
+                return;
+            const images = this._ctx.images;
+            const idx = images.indexOf(image);
+            if (idx === -1)
+                return;
+            for (let d = 1; d <= radius; d++) {
+                this._preloadOne(images[idx + d]);
+                this._preloadOne(images[idx - d]);
+            }
+        }
+        _preloadOne(el) {
+            if (!el)
+                return;
+            const url = el.getAttribute('data-zooom-big');
+            if (!url || this._preloaded.has(url))
+                return;
+            this._preloaded.add(url);
+            const img = new Image();
+            img.src = url;
         }
         _buildCss() {
             const z = this._ctx.zIndex + 10;
@@ -133,10 +187,20 @@ var ZooomSlider = (function () {
         _createCounter() {
             this._counterEl = document.createElement('div');
             this._counterEl.className = 'zooom-counter';
+            this._counterEl.setAttribute('aria-live', 'polite');
+            this._counterEl.setAttribute('aria-atomic', 'true');
             document.body.appendChild(this._counterEl);
         }
+        _cancelPendingSlide() {
+            const p = this._pendingSlide;
+            if (!p)
+                return;
+            p.anim.cancel();
+            p.el.remove();
+            p.original.style.removeProperty('visibility');
+            this._pendingSlide = null;
+        }
         _navigateBy(direction) {
-            var _a, _b;
             const ctx = this._ctx;
             const currentImage = this._currentImage;
             if (!currentImage)
@@ -147,17 +211,7 @@ var ZooomSlider = (function () {
                 return;
             const nextImage = ctx.images[nextIndex];
             const bigImage = nextImage.getAttribute('data-zooom-big');
-            if (this._slideTimeout !== null) {
-                clearTimeout(this._slideTimeout);
-                this._slideTimeout = null;
-                (_b = (_a = this._pendingOutgoing) === null || _a === void 0 ? void 0 : _a.parentNode) === null || _b === void 0 ? void 0 : _b.removeChild(this._pendingOutgoing);
-                this._pendingOutgoing = null;
-                if (this._pendingOutgoingOriginal) {
-                    this._pendingOutgoingOriginal.setAttribute('data-zoomed', 'false');
-                    this._pendingOutgoingOriginal.style.removeProperty('visibility');
-                    this._pendingOutgoingOriginal = null;
-                }
-            }
+            this._cancelPendingSlide();
             const proceed = () => {
                 var _a, _b;
                 if (this._options.effect === 'slide') {
@@ -172,7 +226,7 @@ var ZooomSlider = (function () {
                 }
             };
             if (bigImage) {
-                this._loadImage(nextImage, bigImage).then(() => {
+                loadImage(nextImage, bigImage).then(() => {
                     document.body.classList.remove('zooom-loading');
                     proceed();
                 });
@@ -186,18 +240,6 @@ var ZooomSlider = (function () {
                 proceed();
             }
         }
-        _loadImage(target, bigImage) {
-            return new Promise((resolve, reject) => {
-                let newImage = new Image();
-                newImage.onload = function () { resolve('image loaded'); };
-                newImage.onerror = function () { reject(`image ${bigImage} not loaded`); };
-                document.body.classList.add('zooom-loading');
-                newImage.src = bigImage;
-                target.src = newImage.src;
-                target.dataset.zoooomSrc = newImage.src;
-                target.removeAttribute('data-zooom-big');
-            });
-        }
         _navigateWithSlide(nextImage, direction) {
             var _a;
             const ctx = this._ctx;
@@ -208,7 +250,7 @@ var ZooomSlider = (function () {
             this._isSliding = true;
             ctx.notifyClose(outgoingOriginal);
             if (outgoing) {
-                // capture the current visual bounds (after any active transform) and create
+                // capture the current visual bounds (after any in-flight transform) and create
                 // a plain fixed element at that position — no transform offset needed, clean translateX slide
                 const rect = outgoing.getBoundingClientRect();
                 const slideOutgoing = document.createElement('img');
@@ -219,23 +261,24 @@ var ZooomSlider = (function () {
                 slideOutgoing.style.left = `${rect.left}px`;
                 slideOutgoing.style.width = `${rect.width}px`;
                 slideOutgoing.style.height = `${rect.height}px`;
-                slideOutgoing.style.transition = 'none';
                 document.body.appendChild(slideOutgoing);
                 (_a = outgoing.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(outgoing);
-                slideOutgoing.offsetWidth;
-                slideOutgoing.style.transition = `transform ${animTime}ms ease-in-out`;
-                slideOutgoing.style.transform = `translateX(${-clientWidth * direction}px)`;
                 outgoingOriginal.setAttribute('data-zoomed', 'false');
-                this._pendingOutgoing = slideOutgoing;
-                this._pendingOutgoingOriginal = outgoingOriginal;
-                this._slideTimeout = setTimeout(() => {
-                    var _a;
-                    this._slideTimeout = null;
-                    this._pendingOutgoing = null;
-                    this._pendingOutgoingOriginal = null;
-                    (_a = slideOutgoing.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(slideOutgoing);
+                const anim = slideOutgoing.animate([
+                    { transform: 'translateX(0)' },
+                    { transform: `translateX(${-clientWidth * direction}px)` },
+                ], { duration: animTime, easing: 'ease-in-out', fill: 'forwards' });
+                const pending = { el: slideOutgoing, original: outgoingOriginal, anim };
+                this._pendingSlide = pending;
+                anim.finished
+                    .then(() => {
+                    if (this._pendingSlide !== pending)
+                        return;
+                    slideOutgoing.remove();
                     outgoingOriginal.style.removeProperty('visibility');
-                }, animTime);
+                    this._pendingSlide = null;
+                })
+                    .catch(() => { });
             }
             this._currentImage = nextImage;
             ctx.setCurrentImage(nextImage);
@@ -259,9 +302,11 @@ var ZooomSlider = (function () {
             let maxWidth = image.naturalWidth
                 || parseInt((_a = image.getAttribute('width')) !== null && _a !== void 0 ? _a : '0')
                 || width;
-            maxWidth >= clientWidth && (maxWidth = clientWidth);
+            if (maxWidth >= clientWidth)
+                maxWidth = clientWidth;
             const maxHeight = maxWidth * ratio;
-            maxHeight >= clientHeight && (maxWidth = (maxWidth * clientHeight) / maxHeight);
+            if (maxHeight >= clientHeight)
+                maxWidth = (maxWidth * clientHeight) / maxHeight;
             const scale = maxWidth !== width ? maxWidth / width : 1;
             const img = this._clonedImg;
             img.src = src;

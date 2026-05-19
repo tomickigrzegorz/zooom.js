@@ -21,10 +21,29 @@ See the demo - [example](https://tomickigrzegorz.github.io/zooom.js/)
 ### CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.1.3/dist/zooom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.0/dist/zooom.min.js"></script>
+<!-- optional: navigation between zoomed images -->
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.0/dist/zooom-slider.min.js"></script>
 ```
 
 > The `dist` folder contains IIFE, UMD and ESM builds as well as minified `*.min.js` versions.
+
+### npm / yarn
+
+```bash
+npm install zooom
+# or
+yarn add zooom
+```
+
+```javascript
+import Zooom from "zooom";
+import SliderPlugin from "zooom/slider";
+
+new Zooom("img-zoom").use(new SliderPlugin({ effect: "slide" }));
+```
+
+TypeScript declarations ship in `dist/types/` — `Zooom`, `SliderPlugin`, and the public types (`ConstructorObject`, `ZooomContext`, `ZooomPlugin`, `SliderOptions`, etc.) are all typed out of the box.
 
 ### Download
 
@@ -132,10 +151,11 @@ new Zooom("img-zoom", {
 
 #### SliderPlugin options
 
-| prop    |  type   | default | description                                                                             |
-| ------- | :-----: | :-----: | --------------------------------------------------------------------------------------- |
-| effect  | String  |         | Set to `"slide"` to enable slide-transition navigation. Omit for an instant image swap. |
-| counter | Boolean | `false` | Show an image counter in the top-left corner, e.g. `1 / 10`.                           |
+| prop    |  type   | default | description                                                                                                                                       |
+| ------- | :-----: | :-----: | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| effect  | String  |         | Set to `"slide"` to enable slide-transition navigation. Omit for an instant image swap.                                                           |
+| counter | Boolean | `false` | Show an image counter in the top-left corner, e.g. `1 / 10`.                                                                                      |
+| preload | Number  |   `0`   | Preload N neighbour images on each side of the opened image (only those with `data-zooom-big`). `0` disables. `1` warms the immediate prev/next. |
 
 Navigation is triggered by:
 - **Buttons** — prev/next arrows shown at the sides of the zoomed image
@@ -152,6 +172,18 @@ new Zooom("img-zoom", {
 }).use(new ZooomSlider({ effect: "slide", counter: true }));
 ```
 
+#### With neighbour preload
+
+For galleries using `data-zooom-big` (full-size image loaded on click), set `preload` to warm the browser cache for adjacent images so navigation feels instant:
+
+```javascript
+new Zooom("img-zoom", {
+  zIndex: 9,
+  animationTime: 300,
+  overlay: "rgba(255,255,255,0.9)",
+}).use(new ZooomSlider({ effect: "slide", preload: 1 }));
+```
+
 ### Writing your own plugin
 
 A plugin is any object that implements the `ZooomPlugin` interface:
@@ -160,6 +192,7 @@ A plugin is any object that implements the `ZooomPlugin` interface:
 interface ZooomPlugin {
   name: string;
   install(ctx: ZooomContext): void;
+  uninstall?(): void; // optional cleanup hook
 }
 ```
 
@@ -167,10 +200,11 @@ The `ZooomContext` passed to `install` exposes:
 
 ```typescript
 interface ZooomContext {
-  readonly images: HTMLElement[];       // all registered images
-  readonly currentImage: HTMLElement;   // currently zoomed image
-  readonly animTime: number;            // animation duration (ms)
-  readonly zIndex: number;              // base z-index
+  readonly images: HTMLElement[];                  // all registered images
+  readonly currentImage: HTMLElement;              // currently zoomed image
+  readonly currentClone: HTMLImageElement | null;  // active cloned image element
+  readonly animTime: number;                       // animation duration (ms)
+  readonly zIndex: number;                         // base z-index
   readonly overlayLayer: HTMLDivElement;
   on(event: 'open' | 'close' | 'keydown', handler: Function): void;
   zoomIn(image: HTMLElement, instant?: boolean): void;
@@ -224,6 +258,33 @@ new Zooom("img-zoom", {
   },
 });
 ```
+
+## Keyboard and accessibility
+
+Zooom is keyboard-accessible and screen-reader friendly out of the box — no configuration required.
+
+### Keyboard shortcuts
+
+| Key                | Action                                                            |
+| ------------------ | ----------------------------------------------------------------- |
+| `Tab` / `Shift+Tab` | Move focus to a zoomable image (every `.img-zoom` gets `tabindex="0"`) |
+| `Enter` / `Space`  | Open zoom on the focused image                                    |
+| `Escape`           | Close the zoom                                                    |
+| `←` / `→`          | Previous / next image (SliderPlugin only)                         |
+| `Tab` (while zoomed) | Trapped inside the zoom layer — keyboard focus can't escape    |
+
+### What happens automatically
+
+- **Overlay** receives `role="dialog"`, `aria-modal="true"`, and `aria-label` derived from the image's `alt` attribute
+- **Cloned image** inherits the original `alt` and gets `tabindex="-1"` so it can hold focus during the zoom
+- **Focus management** — focus is moved to the cloned image on open and restored to the previously-focused element on close (after the close animation completes)
+- **Focus trap** — `Tab` / `Shift+Tab` while zoomed re-focuses the cloned image, preventing the user from tabbing into the page behind the modal
+- **SliderPlugin counter** (when `counter: true`) gets `aria-live="polite"` and `aria-atomic="true"`, so screen readers announce navigation like "3 / 11"
+
+### Tips for authors
+
+- Always set a meaningful `alt` on your `<img>` — it becomes the dialog's accessible name
+- If a particular image shouldn't be keyboard-focusable, set `tabindex="-1"` on it explicitly before initialising Zooom
 
 ## Clone the repo and run locally
 

@@ -1,4 +1,4 @@
-interface ConstructorObject {
+export interface ConstructorObject {
   zIndex?: number;
   animationTime?: number;
   overlay?: string;
@@ -8,21 +8,23 @@ interface ConstructorObject {
   onClose?: (image: HTMLElement) => void;
 }
 
-interface ObjectCursor {
+export interface ObjectCursor {
   in?: string;
   out?: string;
 }
 
-interface ZooomPlugin {
+export interface ZooomPlugin {
   name: string;
   install(ctx: ZooomContext): void;
+  uninstall?(): void;
 }
 
-type ZooomEvent = 'open' | 'close' | 'keydown' | 'init';
+export type ZooomEvent = 'open' | 'close' | 'keydown' | 'init';
 
-interface ZooomContext {
+export interface ZooomContext {
   readonly images: HTMLElement[];
   readonly currentImage: HTMLElement;
+  readonly currentClone: HTMLImageElement | null;
   readonly animTime: number;
   readonly zIndex: number;
   readonly overlayLayer: HTMLDivElement;
@@ -36,7 +38,10 @@ interface ZooomContext {
   notifyClose(image: HTMLElement): void;
 }
 
-interface SliderOptions {
+export interface SliderOptions {
+  // 'slide' animates a translateX between adjacent images; omitted = instant swap
   effect?: 'slide';
   counter?: boolean;
+  // preload N neighbour images on each side (with `data-zooom-big`) for instant navigation; 0 disables
+  preload?: number;
 }

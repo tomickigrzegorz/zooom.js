@@ -37,12 +37,31 @@ const debounce = (fn, ms = 300) => {
         timeoutId = setTimeout(() => fn.apply(this, args), ms);
     };
 };
+/**
+ * @function loadImage - swap thumbnail src for a full-size image, resolving when loaded
+ */
+const loadImage = (target, bigImage) => {
+    return new Promise((resolve, reject) => {
+        const newImage = new Image();
+        newImage.onload = () => resolve("image loaded");
+        newImage.onerror = () => reject(`image ${bigImage} not loaded`);
+        document.body.classList.add("zooom-loading");
+        newImage.src = bigImage;
+        target.src = newImage.src;
+        target.dataset.zoooomSrc = newImage.src;
+        target.removeAttribute("data-zooom-big");
+    });
+};
 
 /**
  * @class Zooom
  */
 class Zooom {
     constructor(className, { zIndex, animationTime, cursor, overlay, onResize = () => { }, onOpen = () => { }, onClose = () => { }, }) {
+        // clones produced by the core's initial zoom — used by _reset to decide animation style
+        this._coreClones = new WeakSet();
+        // element that had focus before the zoom opened — restored on close
+        this._returnFocus = null;
         this.use = (plugin) => {
             plugin.install(this._createContext());
             this._plugins.push(plugin);
@@ -53,6 +72,9 @@ class Zooom {
             return {
                 get images() { return self._allImages; },
                 get currentImage() { return self._imageZooom; },
+                get currentClone() {
+                    return self._clonedImg && self._clonedImg.parentNode ? self._clonedImg : null;
+                },
                 get animTime() { return self._animTime; },
                 get zIndex() { return self._zIndex; },
                 get overlayLayer() { return self._overlayLayer; },
@@ -74,9 +96,16 @@ class Zooom {
                 },
                 setCurrentImage(image) {
                     self._imageZooom = image;
+                    // keep dialog label in sync as plugins navigate between images
+                    self._overlayLayer.setAttribute("aria-label", self._imageZooom.alt || "Zoomed image");
                 },
                 setClone(img) {
+                    var _a;
                     self._clonedImg = img;
+                    if (!img.alt)
+                        img.alt = ((_a = self._imageZooom) === null || _a === void 0 ? void 0 : _a.alt) || "";
+                    img.tabIndex = -1;
+                    img.focus({ preventScroll: true });
                 },
                 notifyOpen(image) {
                     self._onOpen(image);
@@ -96,12 +125,14 @@ class Zooom {
             window.addEventListener("DOMContentLoaded", this._event);
         };
         this._event = () => {
-            ["scroll", "resize", "click"].map((type) => {
-                if (this._onResize()) {
-                    window.removeEventListener(type, type === "click" ? this._handleClick : this._handleEvent);
+            const shouldRemove = this._onResize();
+            ["scroll", "resize", "click"].forEach((type) => {
+                const handler = (type === "click" ? this._handleClick : this._handleEvent);
+                if (shouldRemove) {
+                    window.removeEventListener(type, handler);
                 }
                 else {
-                    window.addEventListener(type, type === "click" ? this._handleClick : this._handleEvent);
+                    window.addEventListener(type, handler);
                 }
             });
         };
@@ -110,12 +141,12 @@ class Zooom {
             this._cursorOut = `cursor: ${zOut};`;
         };
         this._handleClick = (event) => {
-            let { target } = event;
+            const target = event.target;
             const dataZoomed = target.getAttribute(this._dataAttr);
             if (dataZoomed === "false") {
                 const bigImage = target.getAttribute("data-zooom-big");
                 if (bigImage) {
-                    this._loadImage(target, bigImage).then(() => {
+                    loadImage(target, bigImage).then(() => {
                         this._imageZooom = target;
                         this._zooomInit();
                         document.body.classList.remove("zooom-loading");
@@ -130,18 +161,6 @@ class Zooom {
                 this._handleEvent();
             }
         };
-        this._loadImage = (target, bigImage) => {
-            return new Promise((resolve, reject) => {
-                let newImage = new Image();
-                newImage.onload = function () { resolve("image loaded"); };
-                newImage.onerror = function () { reject(`image ${bigImage} not loaded`); };
-                document.body.classList.add("zooom-loading");
-                newImage.src = bigImage;
-                target.src = newImage.src;
-                target.dataset.zoooomSrc = newImage.src;
-                target.removeAttribute("data-zooom-big");
-            });
-        };
         this._handleEvent = () => {
             const imagezooom = document.querySelector(`[${this._dataAttr}="true"]`);
             if (!imagezooom)
@@ -153,14 +172,40 @@ class Zooom {
             this._onClose(this._imageZooom);
             this._emit('close', this._imageZooom);
             fadeOut(this._overlayLayer);
+            this._overlayLayer.removeAttribute("role");
+            this._overlayLayer.removeAttribute("aria-modal");
+            this._overlayLayer.removeAttribute("aria-label");
+            const restore = this._returnFocus;
+            this._returnFocus = null;
+            // defer until after _reset's visibility-removal timeout — a hidden element can't receive focus
+            setTimeout(() => {
+                if (restore && typeof restore.focus === "function") {
+                    restore.focus({ preventScroll: true });
+                }
+            }, this._animTime);
         };
         this._handleKeydown = (event) => {
             const isZoomed = !!document.querySelector(`[${this._dataAttr}="true"]`);
-            if (!isZoomed)
+            if (!isZoomed) {
+                // keyboard activation: Enter or Space on a focused zoomable image opens it
+                if (event.key === "Enter" || event.key === " ") {
+                    const target = event.target;
+                    if (target && this._allImages.indexOf(target) >= 0) {
+                        event.preventDefault();
+                        target.click();
+                    }
+                }
                 return;
+            }
             this._emit('keydown', event);
-            if (event.key === "Escape")
+            if (event.key === "Escape") {
                 this._handleEvent();
+            }
+            else if (event.key === "Tab") {
+                // focus trap: keep Tab/Shift+Tab inside the zoom layer
+                event.preventDefault();
+                this._clonedImg.focus({ preventScroll: true });
+            }
         };
         this._createStyleAndAddToHead = () => {
             const background = `#zooom-overlay{position:fixed;pointer-events:none;width:100%;background:rgba(255,255,255,0);height:100%;top:0;justify-content:center;align-items:center;z-index:${this._zIndex};margin:auto;-webkit-transition:background ${this._animTime}ms ease-in-out;transition:background ${this._animTime}ms ease-in-out;${this._cursorOut}}`;
@@ -170,6 +215,15 @@ class Zooom {
         this._zooomInit = (instant = false) => {
             document.body.style.overflow = "hidden";
             this._imageZooom.setAttribute(this._dataAttr, "true");
+            // only capture return focus on the initial open — not on slider navigation,
+            // where _imageZooom is reassigned but the original triggering element is still the right target
+            if (!this._returnFocus) {
+                const active = document.activeElement;
+                this._returnFocus = active && active !== document.body ? active : this._imageZooom;
+            }
+            this._overlayLayer.setAttribute("role", "dialog");
+            this._overlayLayer.setAttribute("aria-modal", "true");
+            this._overlayLayer.setAttribute("aria-label", this._imageZooom.alt || "Zoomed image");
             this._cloneImg(this._imageZooom, instant);
             fadeIn(this._overlayLayer, this._overlay);
             this._onOpen(this._imageZooom);
@@ -195,6 +249,7 @@ class Zooom {
             const scale = maxWidth !== width ? maxWidth / width : 1;
             const img = this._clonedImg;
             img.src = src;
+            img.alt = image.alt || "";
             img.width = width;
             img.height = height;
             // position:fixed — not clipped by body{overflow:hidden} during animation
@@ -204,6 +259,7 @@ class Zooom {
             img.style.width = `${width}px`;
             img.style.height = `${height}px`;
             img.className = "zooom-clone";
+            img.tabIndex = -1;
             this._imageZooom.style.setProperty("visibility", "hidden");
             document.body.appendChild(img);
             img.offsetWidth;
@@ -211,16 +267,16 @@ class Zooom {
             if (instant)
                 img.style.transition = "none";
             img.style.transform = `matrix(${scale},0,0,${scale},${X},${Y})`;
-            // store transform info on the element for plugin use
-            img._zooomTransform = { scale, X, Y, isFixed: true };
+            // mark as core-initiated so _reset() animates back to origin (vs. plugin clones which fade)
+            this._coreClones.add(img);
+            img.focus({ preventScroll: true });
         };
         this._reset = () => {
             const cloneToRemove = this._clonedImg;
             const originalImg = this._imageZooom;
             const t = this._animTime;
-            // _cloneImg sets _zooomTransform on the clone — present only for the initial zoom,
-            // not for plugin-created clones (e.g. SliderPlugin). Use it to decide close animation.
-            const hasReturnPosition = !!cloneToRemove._zooomTransform;
+            // core-initiated clones animate back to origin; plugin-created clones (e.g. SliderPlugin) fade out
+            const hasReturnPosition = this._coreClones.has(cloneToRemove);
             if (hasReturnPosition) {
                 const { top, bottom, left, right } = originalImg.getBoundingClientRect();
                 const { clientHeight, clientWidth } = document.documentElement;
@@ -264,8 +320,11 @@ class Zooom {
         this._overlayLayer.id = this._overlayId;
         document.body.appendChild(this._overlayLayer);
         this._allImages = [].slice.call(document.querySelectorAll(`.${className}`));
-        this._allImages.map((element) => {
+        this._allImages.forEach((element) => {
             element.setAttribute("data-zoomed", "false");
+            // make the image focusable so keyboard users can trigger zoom with Enter/Space
+            if (!element.hasAttribute("tabindex"))
+                element.setAttribute("tabindex", "0");
         });
         window.addEventListener("keydown", this._handleKeydown);
         this._eventHandle();

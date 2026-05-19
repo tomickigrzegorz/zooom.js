@@ -1,17 +1,34 @@
-## v1.2.0 (2026-03-12)
+## v1.2.0 (2026-05-19)
 
 ### Added
 
+- **Accessibility** — built into core, always on:
+  - Zoomable images receive `tabindex="0"` (when not already set) so keyboard users can reach them; `Enter` / `Space` opens the zoom
+  - Overlay receives `role="dialog"`, `aria-modal="true"`, and `aria-label` derived from the image's `alt`
+  - `aria-label` on the overlay is kept in sync as plugins navigate between images (via `ZooomContext.setCurrentImage`)
+  - Cloned `<img>` gets `tabindex="-1"` and inherits `alt` from the original
+  - Focus is moved to the cloned image on open and restored to the previously-focused element on close (deferred until after the close animation completes so the original image is visible again)
+  - `Tab` / `Shift+Tab` are trapped inside the zoom layer (refocuses the clone) so keyboard users don't escape the modal
+  - SliderPlugin counter element gets `aria-live="polite"` and `aria-atomic="true"`, so screen readers announce the full counter text (e.g. "3 / 11") on every navigation
 - **Plugin system** — new `.use(plugin)` chainable API for extending Zooom with plugins
-- **SliderPlugin** — separate `zooom-slider.js` bundle providing previous/next navigation buttons and keyboard arrow-key support
+- **SliderPlugin** — separate `zooom-slider.js` bundle providing previous/next navigation buttons, keyboard arrow-key support and touch swipe
   - `effect: "slide"` — animated slide transition between images
-  - no option — instant image swap without animation
-- New `ZooomContext` interface exposing `images`, `currentImage`, `animTime`, `zIndex`, `overlayLayer`, lifecycle events (`open`, `close`, `keydown`) and methods (`zoomIn`, `zoomOut`, `addStyle`, `setCurrentImage`, `setClone`, `notifyOpen`, `notifyClose`)
+  - `counter: true` — image counter (e.g. `3 / 10`) in the top-left corner
+  - `preload: N` — warm the browser cache for N neighbour images on each side (uses `data-zooom-big`) so navigation feels instant
+  - no `effect` option — instant image swap without animation
+- New `ZooomContext` interface exposing `images`, `currentImage`, `currentClone`, `animTime`, `zIndex`, `overlayLayer`, lifecycle events (`open`, `close`, `keydown`) and methods (`zoomIn`, `zoomOut`, `addStyle`, `setCurrentImage`, `setClone`, `notifyOpen`, `notifyClose`)
+- Optional `ZooomPlugin.uninstall()` — cleanup hook for plugins (SliderPlugin implements it: removes nav buttons, counter and touch listeners)
+- TypeScript declaration files (`.d.ts`) shipped in `dist/types/` — TS consumers get full autocompletion and type-checking for `Zooom`, `SliderPlugin`, and the public types (`ConstructorObject`, `ZooomContext`, `ZooomPlugin`, `SliderOptions`, etc.)
+- `package.json` `exports` field with conditional `import` / `require` / `types` resolution for both entry points: `import Zooom from 'zooom'` and `import SliderPlugin from 'zooom/slider'`
 
 ### Changed
 
+- `package.json` entry points (`main`, `browser`, `module`) now point to `dist/` instead of `docs/`; fixed `module` field typo (`zooom.ems.min.js` → `zooom.es.min.js`); added `files` field to limit publish payload
+- Public types moved from ambient `interface.d.ts` to an exporting module (`sources/js/types.ts`) — no more global namespace pollution for TS consumers
 - Clone element switched from `position: absolute` to `position: fixed` — eliminates clipping by `body { overflow: hidden }` during zoom animation
 - Removed IE (ES5) build targets from rollup config (`zooom.ie.min.js`, `zooom-slider.ie.min.js`)
+- Core: shared `loadImage` helper between core and SliderPlugin, simplified resize/scroll wiring, internal clone tracking via `WeakSet` instead of ad-hoc properties on DOM nodes
+- SliderPlugin: slide animation uses the Web Animations API (`Element.animate`) — cleaner cancellation when rapidly navigating; reads the active clone via `ZooomContext.currentClone` instead of querying the DOM
 
 ### Fixed
 

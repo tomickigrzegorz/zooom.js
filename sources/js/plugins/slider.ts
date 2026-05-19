@@ -1,3 +1,14 @@
+import { loadImage } from "../utils/function";
+import type { SliderOptions, ZooomContext, ZooomPlugin } from "../types";
+
+export type { SliderOptions };
+
+type PendingSlide = {
+  el: HTMLImageElement;
+  original: HTMLElement;
+  anim: Animation;
+};
+
 /**
  * SliderPlugin — navigation between zoomed images
  * Usage: new Zooom('zooom', options).use(new SliderPlugin({ effect: 'slide' }))
@@ -10,13 +21,13 @@ export default class SliderPlugin implements ZooomPlugin {
   private _nextBtn: HTMLButtonElement | null = null;
   private _clonedImg: HTMLImageElement | null = null;
   private _isSliding: boolean = false;
-  private _slideTimeout: ReturnType<typeof setTimeout> | null = null;
-  private _pendingOutgoing: HTMLImageElement | null = null;
-  private _pendingOutgoingOriginal: HTMLElement | null = null;
+  private _pendingSlide: PendingSlide | null = null;
   private _currentImage: HTMLElement | null = null;
   private _options: SliderOptions;
   private _touchStartX: number = 0;
   private _counterEl: HTMLDivElement | null = null;
+  private _installed: boolean = false;
+  private _preloaded: Set<string> = new Set();
 
   constructor(options: SliderOptions = {}) {
     this._options = options;
@@ -24,6 +35,7 @@ export default class SliderPlugin implements ZooomPlugin {
 
   install(ctx: ZooomContext): void {
     this._ctx = ctx;
+    this._installed = true;
 
     if (ctx.images.length > 1) {
       ctx.addStyle(this._buildCss());
@@ -32,10 +44,12 @@ export default class SliderPlugin implements ZooomPlugin {
     }
 
     ctx.on('open', (image: HTMLElement) => {
+      if (!this._installed) return;
+      this._preloadNeighbours(image);
       // during slide navigation we manage the clone ourselves
       if (this._isSliding) return;
       this._currentImage = image;
-      this._clonedImg = document.querySelector('.zooom-clone') as HTMLImageElement;
+      this._clonedImg = ctx.currentClone;
       if (this._clonedImg) {
         this._clonedImg.addEventListener('click', () => ctx.zoomOut());
       }
@@ -43,35 +57,58 @@ export default class SliderPlugin implements ZooomPlugin {
     });
 
     ctx.on('close', () => {
+      if (!this._installed) return;
       // during slide navigation we manage the state ourselves
       if (this._isSliding) return;
-
-      if (this._slideTimeout !== null) {
-        clearTimeout(this._slideTimeout);
-        this._slideTimeout = null;
-      }
-      // restore previous image if its timeout was cancelled
-      if (this._pendingOutgoing) {
-        this._pendingOutgoing.parentNode?.removeChild(this._pendingOutgoing);
-        this._pendingOutgoing = null;
-      }
-      if (this._pendingOutgoingOriginal) {
-        // data-zoomed already set to false at slide start; just restore visibility
-        this._pendingOutgoingOriginal.style.removeProperty('visibility');
-        this._pendingOutgoingOriginal = null;
-      }
+      this._cancelPendingSlide();
       this._hideNavigation();
       this._currentImage = null;
       this._clonedImg = null;
     });
 
     ctx.on('keydown', (event: KeyboardEvent) => {
+      if (!this._installed) return;
       if (event.key === 'ArrowLeft') this._navigateBy(-1);
       else if (event.key === 'ArrowRight') this._navigateBy(1);
     });
 
     document.addEventListener('touchstart', this._handleTouchStart, { passive: true });
     document.addEventListener('touchend', this._handleTouchEnd, { passive: true });
+  }
+
+  uninstall(): void {
+    this._installed = false;
+    this._cancelPendingSlide();
+    this._prevBtn?.remove();
+    this._nextBtn?.remove();
+    this._counterEl?.remove();
+    this._prevBtn = null;
+    this._nextBtn = null;
+    this._counterEl = null;
+    this._preloaded.clear();
+    document.removeEventListener('touchstart', this._handleTouchStart);
+    document.removeEventListener('touchend', this._handleTouchEnd);
+  }
+
+  private _preloadNeighbours(image: HTMLElement): void {
+    const radius = Math.max(0, this._options.preload ?? 0);
+    if (radius === 0) return;
+    const images = this._ctx.images;
+    const idx = images.indexOf(image);
+    if (idx === -1) return;
+    for (let d = 1; d <= radius; d++) {
+      this._preloadOne(images[idx + d]);
+      this._preloadOne(images[idx - d]);
+    }
+  }
+
+  private _preloadOne(el?: HTMLElement): void {
+    if (!el) return;
+    const url = el.getAttribute('data-zooom-big');
+    if (!url || this._preloaded.has(url)) return;
+    this._preloaded.add(url);
+    const img = new Image();
+    img.src = url;
   }
 
   private _buildCss(): string {
@@ -128,7 +165,18 @@ export default class SliderPlugin implements ZooomPlugin {
   private _createCounter(): void {
     this._counterEl = document.createElement('div');
     this._counterEl.className = 'zooom-counter';
+    this._counterEl.setAttribute('aria-live', 'polite');
+    this._counterEl.setAttribute('aria-atomic', 'true');
     document.body.appendChild(this._counterEl);
+  }
+
+  private _cancelPendingSlide(): void {
+    const p = this._pendingSlide;
+    if (!p) return;
+    p.anim.cancel();
+    p.el.remove();
+    p.original.style.removeProperty('visibility');
+    this._pendingSlide = null;
   }
 
   private _navigateBy(direction: number): void {
@@ -144,17 +192,7 @@ export default class SliderPlugin implements ZooomPlugin {
     const nextImage = ctx.images[nextIndex] as HTMLImageElement;
     const bigImage = nextImage.getAttribute('data-zooom-big');
 
-    if (this._slideTimeout !== null) {
-      clearTimeout(this._slideTimeout);
-      this._slideTimeout = null;
-      this._pendingOutgoing?.parentNode?.removeChild(this._pendingOutgoing);
-      this._pendingOutgoing = null;
-      if (this._pendingOutgoingOriginal) {
-        this._pendingOutgoingOriginal.setAttribute('data-zoomed', 'false');
-        this._pendingOutgoingOriginal.style.removeProperty('visibility');
-        this._pendingOutgoingOriginal = null;
-      }
-    }
+    this._cancelPendingSlide();
 
     const proceed = () => {
       if (this._options.effect === 'slide') {
@@ -169,30 +207,17 @@ export default class SliderPlugin implements ZooomPlugin {
     };
 
     if (bigImage) {
-      this._loadImage(nextImage, bigImage).then(() => {
+      loadImage(nextImage, bigImage).then(() => {
         document.body.classList.remove('zooom-loading');
         proceed();
       });
-    } else if ((nextImage as HTMLImageElement).naturalWidth === 0) {
+    } else if (nextImage.naturalWidth === 0) {
       nextImage.loading = 'eager';
       nextImage.addEventListener('load', proceed, { once: true });
       nextImage.addEventListener('error', proceed, { once: true });
     } else {
       proceed();
     }
-  }
-
-  private _loadImage(target: HTMLImageElement, bigImage: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-      let newImage = new Image();
-      newImage.onload = function () { resolve('image loaded'); };
-      newImage.onerror = function () { reject(`image ${bigImage} not loaded`); };
-      document.body.classList.add('zooom-loading');
-      newImage.src = bigImage;
-      target.src = newImage.src;
-      target.dataset.zoooomSrc = newImage.src;
-      target.removeAttribute('data-zooom-big');
-    });
   }
 
   private _navigateWithSlide(nextImage: HTMLImageElement, direction: number): void {
@@ -207,7 +232,7 @@ export default class SliderPlugin implements ZooomPlugin {
     ctx.notifyClose(outgoingOriginal);
 
     if (outgoing) {
-      // capture the current visual bounds (after any active transform) and create
+      // capture the current visual bounds (after any in-flight transform) and create
       // a plain fixed element at that position — no transform offset needed, clean translateX slide
       const rect = outgoing.getBoundingClientRect();
       const slideOutgoing = document.createElement('img');
@@ -218,24 +243,28 @@ export default class SliderPlugin implements ZooomPlugin {
       slideOutgoing.style.left = `${rect.left}px`;
       slideOutgoing.style.width = `${rect.width}px`;
       slideOutgoing.style.height = `${rect.height}px`;
-      slideOutgoing.style.transition = 'none';
       document.body.appendChild(slideOutgoing);
       outgoing.parentNode?.removeChild(outgoing);
-      slideOutgoing.offsetWidth;
-
-      slideOutgoing.style.transition = `transform ${animTime}ms ease-in-out`;
-      slideOutgoing.style.transform = `translateX(${-clientWidth * direction}px)`;
 
       outgoingOriginal.setAttribute('data-zoomed', 'false');
-      this._pendingOutgoing = slideOutgoing;
-      this._pendingOutgoingOriginal = outgoingOriginal;
-      this._slideTimeout = setTimeout(() => {
-        this._slideTimeout = null;
-        this._pendingOutgoing = null;
-        this._pendingOutgoingOriginal = null;
-        slideOutgoing.parentNode?.removeChild(slideOutgoing);
-        outgoingOriginal.style.removeProperty('visibility');
-      }, animTime);
+
+      const anim = slideOutgoing.animate(
+        [
+          { transform: 'translateX(0)' },
+          { transform: `translateX(${-clientWidth * direction}px)` },
+        ],
+        { duration: animTime, easing: 'ease-in-out', fill: 'forwards' }
+      );
+      const pending: PendingSlide = { el: slideOutgoing, original: outgoingOriginal, anim };
+      this._pendingSlide = pending;
+      anim.finished
+        .then(() => {
+          if (this._pendingSlide !== pending) return;
+          slideOutgoing.remove();
+          outgoingOriginal.style.removeProperty('visibility');
+          this._pendingSlide = null;
+        })
+        .catch(() => { /* cancelled by next navigation */ });
     }
 
     this._currentImage = nextImage;
@@ -264,9 +293,9 @@ export default class SliderPlugin implements ZooomPlugin {
     let maxWidth = image.naturalWidth
       || parseInt(image.getAttribute('width') ?? '0')
       || width;
-    maxWidth >= clientWidth && (maxWidth = clientWidth);
+    if (maxWidth >= clientWidth) maxWidth = clientWidth;
     const maxHeight = maxWidth * ratio;
-    maxHeight >= clientHeight && (maxWidth = (maxWidth * clientHeight) / maxHeight);
+    if (maxHeight >= clientHeight) maxWidth = (maxWidth * clientHeight) / maxHeight;
     const scale = maxWidth !== width ? maxWidth / width : 1;
 
     const img = this._clonedImg;
