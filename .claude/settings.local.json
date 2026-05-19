@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"D:\\\\_PROJECT_\\\\_GITHUB_\\\\zooom\" && npx tsc --version 2>&1)",
+      "Bash(cd \"D:\\\\_PROJECT_\\\\_GITHUB_\\\\zooom\" && yarn build 2>&1)",
+      "Bash(cd \"D:\\\\_PROJECT_\\\\_GITHUB_\\\\zooom\" && node -p \"require\\('./package.json'\\).version\")",
+      "Bash(cd \"D:\\\\_PROJECT_\\\\_GITHUB_\\\\zooom\" && yarn build 2>&1 | tail -5)",
+      "WebSearch",
+      "WebFetch(domain:vite.dev)",
+      "WebFetch(domain:www.chartjs.org)",
+      "WebFetch(domain:leafletjs.com)",
+      "WebFetch(domain:rollupjs.org)"
+    ]
+  }
+}
