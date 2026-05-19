@@ -21,9 +21,11 @@ See the demo - [example](https://tomickigrzegorz.github.io/zooom.js/)
 ### CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.0/dist/zooom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.3.0/dist/zooom.min.js"></script>
 <!-- optional: navigation between zoomed images -->
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.0/dist/zooom-slider.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.3.0/dist/zooom-slider.min.js"></script>
+<!-- optional: wheel/dblclick/pinch/pan zoom -->
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.3.0/dist/zooom-panzoom.min.js"></script>
 ```
 
 > The `dist` folder contains IIFE, UMD and ESM builds as well as minified `*.min.js` versions.
@@ -39,11 +41,14 @@ yarn add zooom
 ```javascript
 import Zooom from "zooom";
 import SliderPlugin from "zooom/slider";
+import PanZoomPlugin from "zooom/panzoom";
 
-new Zooom("img-zoom").use(new SliderPlugin({ effect: "slide" }));
+new Zooom("img-zoom")
+  .use(new SliderPlugin({ effect: "slide" }))
+  .use(new PanZoomPlugin());
 ```
 
-TypeScript declarations ship in `dist/types/` — `Zooom`, `SliderPlugin`, and the public types (`ConstructorObject`, `ZooomContext`, `ZooomPlugin`, `SliderOptions`, etc.) are all typed out of the box.
+TypeScript declarations ship in `dist/types/` — `Zooom`, `SliderPlugin`, `PanZoomPlugin`, and the public types (`ConstructorObject`, `ZooomContext`, `ZooomPlugin`, `SliderOptions`, `PanZoomOptions`, etc.) are all typed out of the box.
 
 ### Download
 
@@ -51,6 +56,7 @@ Download from the `dist` folder and add to your HTML:
 
 - `dist/zooom.min.js` — core library
 - `dist/zooom-slider.min.js` — SliderPlugin (optional)
+- `dist/zooom-panzoom.min.js` — PanZoomPlugin (optional)
 
 ## Basic usage
 
@@ -183,6 +189,52 @@ new Zooom("img-zoom", {
   overlay: "rgba(255,255,255,0.9)",
 }).use(new ZooomSlider({ effect: "slide", preload: 1 }));
 ```
+
+### PanZoomPlugin
+
+Adds wheel + double-click + pinch + drag-to-pan zoom on the active image, so users can zoom in beyond the fit-to-viewport scale and pan around the zoomed image.
+
+Add the panzoom script after the core library (and, if used together, after `zooom-slider`):
+
+```html
+<script src="path/to/zooom.min.js"></script>
+<script src="path/to/zooom-slider.min.js"></script>
+<script src="path/to/zooom-panzoom.min.js"></script>
+```
+
+```javascript
+new Zooom("img-zoom", {
+  zIndex: 9,
+  animationTime: 300,
+  overlay: "rgba(255,255,255,0.9)",
+})
+  .use(new ZooomSlider({ effect: "slide" }))
+  .use(new ZooomPanZoom({ maxScale: 3 }));
+```
+
+> **Plugin order matters.** When using both, install SliderPlugin **before** PanZoomPlugin (`.use(slider).use(panzoom)`). PanZoom layers its gesture handling on top of the slider's; the order keeps the mental model consistent.
+
+#### PanZoomPlugin options
+
+| prop             |  type  | default | description                                                                                                |
+| ---------------- | :----: | :-----: | ---------------------------------------------------------------------------------------------------------- |
+| maxScale         | Number |   `3`   | Maximum scale multiplier beyond the core's fit-to-viewport base (so the maximum total zoom is `base × maxScale`). |
+| doubleClickScale | Number |   `2`   | Scale applied on double-click (and reverted on next double-click), as a multiplier of the base scale.       |
+| wheelStep        | Number | `0.15`  | Scale delta applied per mouse-wheel tick.                                                                  |
+
+Gestures:
+- **Mouse wheel** — zoom in/out, anchored on the cursor
+- **Double click** — toggle between base scale and `doubleClickScale × base` (200 ms ease-out)
+- **Pinch** — zoom in/out, anchored on the pinch midpoint
+- **Mouse drag / touch drag** — pan the image when zoomed (clamped to viewport edges)
+
+Coordination with `SliderPlugin`:
+- At base scale, horizontal swipe still navigates between images (slider takes the gesture)
+- While zoomed, horizontal swipe pans the image instead — slider's swipe is blocked
+- Slider buttons and `←` / `→` keys continue to work while zoomed in
+- `Escape` closes the zoom from whatever pan/zoom position it's currently at
+
+> Click-to-close has a 300 ms latency while PanZoomPlugin is installed (we wait to see if a second click follows for a double-click). `Escape` stays instant.
 
 ### Writing your own plugin
 

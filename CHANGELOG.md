@@ -1,3 +1,23 @@
+## v1.3.0 (2026-05-19)
+
+### Added
+
+- **PanZoomPlugin** — separate `zooom-panzoom.js` bundle adding wheel, double-click, pinch and drag-to-pan zoom on top of the core's fit-to-viewport scale, so users can zoom deeper into a detail and pan around
+  - `maxScale: 3` (default) — maximum scale multiplier beyond the fit-to-viewport base
+  - `doubleClickScale: 2` (default) — scale applied on double-click (toggled on next double-click) with a 200 ms ease-out transition
+  - `wheelStep: 0.15` (default) — scale delta per mouse-wheel tick
+  - Wheel/pinch/dblclick are anchored on the cursor / pinch-midpoint / click point so the point under the user's gesture stays put while the rest of the image scales around it
+  - Pan is clamped to the viewport — no over-pan, no bounce
+  - Coordinates with `SliderPlugin`: at base scale, horizontal swipe still navigates; while zoomed, swipe pans the image instead (capture-phase touch listeners with `stopPropagation()`). Slider prev/next buttons and `←` / `→` keys keep working while zoomed.
+- New `PanZoomOptions` interface and `package.json` subpath export `zooom/panzoom` (mirrors the slider plumbing).
+
+### Notes
+
+- When PanZoomPlugin is installed, single-click-to-close gains a 300 ms latency (we wait for a possible double-click). `Escape` stays instant. This is the trade-off for native double-click support.
+- Plugin install order: `.use(slider).use(panzoom)` — documented in README.
+
+---
+
 ## v1.2.0 (2026-05-19)
 
 ### Added

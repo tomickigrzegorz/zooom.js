@@ -359,6 +359,7 @@
 
     <script src="./zooom.min.js"></script>
     <script src="./zooom-slider.min.js"></script>
+    <script src="./zooom-panzoom.min.js"></script>
     <script>
       new Zooom("img-zoom", {
         zIndex: 9,
@@ -427,7 +428,9 @@
             descriptionText.classList.add("animation-off");
           }
         },
-      }).use(new ZooomSlider({ effect: "slide", counter: true, preload: 1 }));
+      })
+        .use(new ZooomSlider({ effect: "slide", counter: true, preload: 1 }))
+        .use(new ZooomPanZoom());
     </script>
   </body>
 </html>

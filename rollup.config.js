@@ -11,10 +11,13 @@ const { PRODUCTION } = process.env;
 
 const input = "sources/js/index.ts";
 const sliderInput = "sources/js/plugins/slider.ts";
+const panZoomInput = "sources/js/plugins/panzoom.ts";
 
 const banner = `/*!\n* Zooom.js - the easiest way to enlarge a photo\n* @version v${pkg.version}\n* @link ${pkg.homepage}\n* @license ${pkg.license}\n*/`;
 
 const sliderBanner = `/*!\n* Zooom.js SliderPlugin - navigation plugin for Zooom\n* @version v${pkg.version}\n* @link ${pkg.homepage}\n* @license ${pkg.license}\n*/`;
+
+const panZoomBanner = `/*!\n* Zooom.js PanZoomPlugin - wheel/dblclick/pinch/pan zoom plugin for Zooom\n* @version v${pkg.version}\n* @link ${pkg.homepage}\n* @license ${pkg.license}\n*/`;
 
 const sharedPlugins = (target) => {
   return [
@@ -226,6 +229,102 @@ export default [
       file: "dist/zooom-slider.es.min.js",
       format: "es",
       name: "ZooomSlider",
+      sourcemap: false,
+      plugins: [terser({ ...terserConfig })],
+    },
+  },
+  // --------------------------------------------------
+  // panzoom plugin — docs (dev/demo)
+  {
+    input: panZoomInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: panZoomBanner,
+      file: "docs/zooom-panzoom.min.js",
+      format: "iife",
+      name: "ZooomPanZoom",
+      sourcemap: true,
+      plugins: [terser({ ...terserConfig })],
+    },
+  },
+  // --------------------------------------------------
+  // panzoom plugin — iife
+  {
+    input: panZoomInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: panZoomBanner,
+      file: "dist/zooom-panzoom.js",
+      format: "iife",
+      name: "ZooomPanZoom",
+      sourcemap: true,
+    },
+  },
+  {
+    input: panZoomInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: panZoomBanner,
+      file: "dist/zooom-panzoom.min.js",
+      format: "iife",
+      name: "ZooomPanZoom",
+      sourcemap: false,
+      plugins: [terser({ ...terserConfig })],
+    },
+  },
+  // --------------------------------------------------
+  // panzoom plugin — umd
+  {
+    input: panZoomInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: panZoomBanner,
+      file: "dist/zooom-panzoom.umd.js",
+      format: "umd",
+      name: "ZooomPanZoom",
+      sourcemap: true,
+    },
+  },
+  {
+    input: panZoomInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: panZoomBanner,
+      file: "dist/zooom-panzoom.umd.min.js",
+      format: "umd",
+      name: "ZooomPanZoom",
+      sourcemap: false,
+      plugins: [terser({ ...terserConfig })],
+    },
+  },
+  // --------------------------------------------------
+  // panzoom plugin — esm
+  {
+    input: panZoomInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: panZoomBanner,
+      file: "dist/zooom-panzoom.es.js",
+      format: "es",
+      name: "ZooomPanZoom",
+      sourcemap: true,
+    },
+  },
+  {
+    input: panZoomInput,
+    watch: false,
+    plugins: [...sharedPlugins("es6")],
+    output: {
+      banner: panZoomBanner,
+      file: "dist/zooom-panzoom.es.min.js",
+      format: "es",
+      name: "ZooomPanZoom",
       sourcemap: false,
       plugins: [terser({ ...terserConfig })],
     },

@@ -1,6 +1,6 @@
 /*!
 * Zooom.js - the easiest way to enlarge a photo
-* @version v1.2.0
+* @version v1.3.0
 * @link https://github.com/tomickigrzegorz/zooom.js
 * @license MIT
 */

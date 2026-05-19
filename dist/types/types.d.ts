@@ -38,3 +38,11 @@ export interface SliderOptions {
     counter?: boolean;
     preload?: number;
 }
+export interface PanZoomOptions {
+    /** Maximum scale beyond the core's fit-to-viewport base. Default: 3 */
+    maxScale?: number;
+    /** Scale applied on double-click (and reverted on next double-click). Default: 2 */
+    doubleClickScale?: number;
+    /** Scale delta applied per mouse-wheel tick. Default: 0.15 */
+    wheelStep?: number;
+}

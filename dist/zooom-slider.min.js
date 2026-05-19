@@ -1,6 +1,6 @@
 /*!
 * Zooom.js SliderPlugin - navigation plugin for Zooom
-* @version v1.2.0
+* @version v1.3.0
 * @link https://github.com/tomickigrzegorz/zooom.js
 * @license MIT
 */
