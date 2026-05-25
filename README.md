@@ -21,9 +21,9 @@ See the demo - [example](https://tomickigrzegorz.github.io/zooom.js/)
 ### CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.0/dist/zooom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.1/dist/zooom.min.js"></script>
 <!-- optional: navigation between zoomed images -->
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.0/dist/zooom-slider.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.1/dist/zooom-slider.min.js"></script>
 ```
 
 > The `dist` folder contains IIFE, UMD and ESM builds as well as minified `*.min.js` versions.

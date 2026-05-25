@@ -1,6 +1,6 @@
 /*!
 * Zooom.js - the easiest way to enlarge a photo
-* @version v1.2.0
+* @version v1.2.1
 * @link https://github.com/tomickigrzegorz/zooom.js
 * @license MIT
 */
@@ -214,7 +214,7 @@
                 }
             };
             this._createStyleAndAddToHead = () => {
-                const background = `#zooom-overlay{position:fixed;pointer-events:none;width:100%;background:rgba(255,255,255,0);height:100%;top:0;justify-content:center;align-items:center;z-index:${this._zIndex};margin:auto;-webkit-transition:background ${this._animTime}ms ease-in-out;transition:background ${this._animTime}ms ease-in-out;${this._cursorOut}}`;
+                const background = `#zooom-overlay{position:fixed;pointer-events:none;width:100%;background:rgba(255,255,255,0);height:100%;top:0;left:0;justify-content:center;align-items:center;z-index:${this._zIndex};margin:auto;-webkit-transition:background ${this._animTime}ms ease-in-out;transition:background ${this._animTime}ms ease-in-out;${this._cursorOut}}`;
                 const css = `.${this._element}{${this._cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{${this._cursorOut}position:relative;z-index:${this._zIndex + 9};transition:transform ${this._animTime}ms ease-in-out;}`;
                 document.head.insertAdjacentHTML("beforeend", `<style>html{scrollbar-gutter:stable}${css}${background}</style>`);
             };

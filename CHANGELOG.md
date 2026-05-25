@@ -1,3 +1,7 @@
+## v1.2.1 (2024-06-20)
+### Fixed
+- Overlay misaligned and not full-width on pages with centered `<body>` (`max-width` + `margin: auto`)
+
 ## v1.2.0 (2026-05-19)
 
 ### Added
