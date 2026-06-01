@@ -355,12 +355,7 @@ new Zooom("img-zoom", {
     out: "var(--zoom-out)",
   },
   onResize: function () {
-    const windowWidth =
-      window.innerWidth ||
-      document.documentElement.clientWidth ||
-      document.body.clientWidth;
-
-    const isMobile = windowWidth < 600;
+    const isMobile = window.matchMedia("(max-width: 600px)").matches;
 
     const root = document.documentElement;
     root.style.setProperty("--zoom-in", isMobile ? "default" : "zoom-in");

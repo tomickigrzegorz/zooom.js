@@ -1,53 +1,24 @@
 ## v1.4.0 (2026-05-27)
 
-### Added — SliderPlugin
-
-- **`hideButtons` option** — `boolean | number | 'mobile' | (() => boolean)`. Hide the prev/next arrow buttons. Keyboard arrows, swipe and mouse-drag still navigate.
-  - `true` — always hide
-  - `number` — hide when `document.documentElement.clientWidth ≤ N` (re-evaluated on `resize`)
-  - `'mobile'` — hide on coarse-pointer devices, via `matchMedia('(pointer: coarse)')`
-  - function — custom predicate, evaluated per open and per resize
-- **`gap` option** — `number` (default `0`). Visual spacing in pixels between adjacent images during swipe / mouse-drag / `effect: 'slide'` animation. The commit-swipe threshold (≈ 20 % of viewport) is intentionally derived from raw `vw`, so adding a gap doesn't change drag sensitivity.
-- **`loadingIndicator` option** — `boolean | 'auto' | (() => boolean)`. Toggle the `zooom-loading` class on `<body>` while a navigated-to image (lazy `<img>`, `<picture>`) is still loading. Host page styles the spinner.
-  - `true` — always show while loading
-  - `'auto'` — only on slow networks, via `navigator.connection.effectiveType` (`slow-2g` / `2g` / `3g`) or `saveData`. Silently no-op in Safari / Firefox (no Network Information API)
-  - function — custom predicate
-
-### Fixed — SliderPlugin
-
-- **Mouse-drag now shows `<picture>` images correctly.** Previously, when peeking an `<img>` inside `<picture>` that wasn't loaded yet, `_createPeek` read `image.currentSrc` (empty for lazy) and fell back to `image.src` (the `<img>` fallback attribute, which ignores `<source>` elements with different `type` / `media`). The peek either showed the wrong file or stayed blank. The drag path now mirrors the arrow / button path: force `image.loading = 'eager'`, then swap `peek.src` to `image.currentSrc` once the browser-chosen source loads. Keyboard-arrow navigation was already correct because `_navigateBy` waits for the load event before creating the new clone.
-- **Slide outgoing clone is no longer washed out by the overlay.** The `slideOutgoing` element created by `_navigateWithSlide` was missing `data-zoomed="true"`, so the `[data-zoomed="true"]{ z-index: ... }` rule didn't apply — it rendered *behind* the semi-transparent overlay, which bleached it during the slide. The attribute is now set on creation; both incoming and outgoing render above the overlay.
-- **Lazy/`<picture>` images no longer open invisible or squished.** An unloaded `loading="lazy"` image reports `getBoundingClientRect()` height `0` (with `height:auto`), so clones were sized 0-height (invisible). New shared `resolveImageRect` reconstructs missing dimensions from the intrinsic/attribute aspect ratio; the drag peek also recomputes its geometry on load, fixing wrong aspect ratio / `scale: 1` for images missing a `width` attribute.
-- **`<picture>` peek shows the right source instantly.** Initial `peek.src` now resolves synchronously from the matching `<source>`/`srcset` (`_resolvePeekSrc`) instead of an empty `currentSrc`, so it never flashes blank before the eager-load resolves.
-
-### Added — PanZoomPlugin
-
-- **iOS Safari touch hardening.** When the zoom opens, the clone now receives `touch-action: none`, `-webkit-touch-callout: none`, `user-select: none`, `-webkit-user-select: none`, `-webkit-user-drag: none`. This blocks the browser's native pinch / double-tap zoom (which fought the plugin's own handlers), the long-press "Save Image / Copy" callout, text selection and HTML5 image drag. All properties are cleared on close.
-
-### Fixed — PanZoomPlugin
-
-- **Click outside the image now closes the zoom**, matching `Escape` and the close button. Previously `_onClick` called `stopPropagation()` on *every* click while PanZoom was active, which suppressed the core's window-level close handler — so a click on the overlay (white space around the zoomed image) toggled zoom instead of closing. The handler now only intercepts clicks whose target is the clone itself; clicks on the overlay bubble through to the core's close handler.
-- **Click after pan + wheel-out to base scale now zooms.** A stale `_panMoved` flag (set while panning) survived wheeling back to base because `_onMouseDown` returned early when not zoomed, so the next click was consumed as a synthetic post-drag click instead of toggling. The flag is now cleared at the start of every press, before the zoom guard.
-
----
-
-## v1.3.0 (2026-05-19)
-
 ### Added
 
-- **PanZoomPlugin** — separate `zooom-panzoom.js` bundle adding wheel, double-click, pinch and drag-to-pan zoom on top of the core's fit-to-viewport scale, so users can zoom deeper into a detail and pan around
-  - `maxScale: 3` (default) — maximum scale multiplier beyond the fit-to-viewport base
-  - `doubleClickScale: 2` (default) — scale applied on double-click (toggled on next double-click) with a 200 ms ease-out transition
-  - `wheelStep: 0.15` (default) — scale delta per mouse-wheel tick
-  - Wheel/pinch/dblclick are anchored on the cursor / pinch-midpoint / click point so the point under the user's gesture stays put while the rest of the image scales around it
-  - Pan is clamped to the viewport — no over-pan, no bounce
-  - Coordinates with `SliderPlugin`: at base scale, horizontal swipe still navigates; while zoomed, swipe pans the image instead (capture-phase touch listeners with `stopPropagation()`). Slider prev/next buttons and `←` / `→` keys keep working while zoomed.
-- New `PanZoomOptions` interface and `package.json` subpath export `zooom/panzoom` (mirrors the slider plumbing).
+- **PanZoomPlugin** — new `zooom-panzoom.js` bundle: wheel / double-click / pinch / drag-to-pan zoom on top of the fit-to-viewport scale, with cursor-anchored zoom and viewport-clamped pan. Options: `maxScale` (3), `doubleClickScale` (2), `wheelStep` (0.15). Coordinates with SliderPlugin (swipe navigates at base scale, pans when zoomed) and adds iOS Safari touch hardening.
+- **SliderPlugin options** — `hideButtons` (`true | number | 'mobile' | fn`), `gap` (px between slides), `loadingIndicator` (`true | 'auto' | fn`, toggles `.zooom-loading` while loading).
+
+### Fixed
+
+- **SliderPlugin** — lazy / `<picture>` images no longer open invisible, squished or blank: the peek resolves the correct `<source>` instantly and recomputes geometry on load. Outgoing slide clone no longer washed out by the overlay.
+- **PanZoomPlugin** — click on the overlay now closes the zoom (instead of toggling); a click after pan + wheel-out to base scale now zooms again.
 
 ### Notes
 
-- When PanZoomPlugin is installed, single-click-to-close gains a 300 ms latency (we wait for a possible double-click). `Escape` stays instant. This is the trade-off for native double-click support.
-- Plugin install order: `.use(slider).use(panzoom)` — documented in README.
+- With PanZoomPlugin, single-click-to-close has a 300 ms latency (waits for a possible double-click); `Escape` stays instant. Install order: `.use(slider).use(panzoom)`.
+
+## v1.2.1 (2024-06-20)
+
+### Fixed
+
+- Overlay misaligned and not full-width on pages with centered `<body>` (`max-width` + `margin: auto`)
 
 ---
 

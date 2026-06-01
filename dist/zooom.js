@@ -255,7 +255,7 @@ var Zooom = (function () {
                 }
             };
             this._createStyleAndAddToHead = () => {
-                const background = `#zooom-overlay{position:fixed;pointer-events:none;width:100%;background:rgba(255,255,255,0);height:100%;top:0;justify-content:center;align-items:center;z-index:${this._zIndex};margin:auto;-webkit-transition:background ${this._animTime}ms ease-in-out;transition:background ${this._animTime}ms ease-in-out;${this._cursorOut}}`;
+                const background = `#zooom-overlay{position:fixed;pointer-events:none;width:100%;background:rgba(255,255,255,0);height:100%;top:0;left:0;justify-content:center;align-items:center;z-index:${this._zIndex};margin:auto;-webkit-transition:background ${this._animTime}ms ease-in-out;transition:background ${this._animTime}ms ease-in-out;${this._cursorOut}}`;
                 const css = `.${this._element}{${this._cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{${this._cursorOut}position:relative;z-index:${this._zIndex + 9};transition:transform ${this._animTime}ms ease-in-out;}`;
                 const closeBtnCss = this._closeButton
                     ? `.zooom-close-btn{position:fixed;top:16px;right:16px;z-index:${this._zIndex + 10};background:rgba(255,255,255,0.85);color:#222;border:none;border-radius:50%;width:36px;height:36px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 200ms ease-in-out,background 200ms ease;box-shadow:0 2px 8px rgba(0,0,0,0.2);}.zooom-close-btn.visible{opacity:1;pointer-events:auto;}.zooom-close-btn:hover{background:rgba(255,255,255,1);}`
