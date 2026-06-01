@@ -22,4 +22,20 @@ declare const debounce: (fn: Function, ms?: number) => (this: any, ...args: any[
  * @function loadImage - swap thumbnail src for a full-size image, resolving when loaded
  */
 declare const loadImage: (target: HTMLImageElement, bigImage: string) => Promise<string>;
-export { fadeIn, fadeOut, debounce, loadImage };
+/**
+ * @function resolveImageRect - geometry for cloning, robust to lazy/unloaded images.
+ *
+ * A `loading="lazy"` image that hasn't loaded yet (e.g. far below the fold) can report a
+ * degenerate `getBoundingClientRect()` — typically `height: 0` (and sometimes `width: 0`)
+ * when CSS sets `height:auto` and the browser hasn't reserved aspect-ratio space. Cloning
+ * straight from that rect produces a zero-size, invisible clone. This reconstructs the
+ * missing dimension(s) from the intrinsic aspect ratio (natural size if available, else the
+ * width/height attributes), keeping the real on-screen position (left/top) intact.
+ */
+declare const resolveImageRect: (image: HTMLImageElement) => {
+    width: number;
+    height: number;
+    left: number;
+    top: number;
+};
+export { fadeIn, fadeOut, debounce, loadImage, resolveImageRect };

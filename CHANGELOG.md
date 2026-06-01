@@ -1,6 +1,26 @@
-## v1.2.1 (2024-06-20)
+## v1.4.0 (2026-05-27)
+
+### Added
+
+- **PanZoomPlugin** — new `zooom-panzoom.js` bundle: wheel / double-click / pinch / drag-to-pan zoom on top of the fit-to-viewport scale, with cursor-anchored zoom and viewport-clamped pan. Options: `maxScale` (3), `doubleClickScale` (2), `wheelStep` (0.15). Coordinates with SliderPlugin (swipe navigates at base scale, pans when zoomed) and adds iOS Safari touch hardening.
+- **SliderPlugin options** — `hideButtons` (`true | number | 'mobile' | fn`), `gap` (px between slides), `loadingIndicator` (`true | 'auto' | fn`, toggles `.zooom-loading` while loading).
+
 ### Fixed
+
+- **SliderPlugin** — lazy / `<picture>` images no longer open invisible, squished or blank: the peek resolves the correct `<source>` instantly and recomputes geometry on load. Outgoing slide clone no longer washed out by the overlay.
+- **PanZoomPlugin** — click on the overlay now closes the zoom (instead of toggling); a click after pan + wheel-out to base scale now zooms again.
+
+### Notes
+
+- With PanZoomPlugin, single-click-to-close has a 300 ms latency (waits for a possible double-click); `Escape` stays instant. Install order: `.use(slider).use(panzoom)`.
+
+## v1.2.1 (2024-06-20)
+
+### Fixed
+
 - Overlay misaligned and not full-width on pages with centered `<body>` (`max-width` + `margin: auto`)
+
+---
 
 ## v1.2.0 (2026-05-19)
 

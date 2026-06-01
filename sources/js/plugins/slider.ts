@@ -1,4 +1,4 @@
-import { loadImage } from "../utils/function";
+import { loadImage, resolveImageRect } from "../utils/function";
 import type { SliderOptions, ZooomContext, ZooomPlugin } from "../types";
 
 export type { SliderOptions };
@@ -7,6 +7,22 @@ type PendingSlide = {
   el: HTMLImageElement;
   original: HTMLElement;
   anim: Animation;
+};
+
+type DragPeek = { el: HTMLImageElement; matrix: string };
+
+type DragState = {
+  startX: number;
+  vw: number;
+  // distance between adjacent slide-track positions = vw + configured gap.
+  // kept separate from vw so the commit threshold (vw * 0.2) is unaffected by gap.
+  slideOffset: number;
+  baseTransform: string;
+  baseTransition: string;
+  next: DragPeek | null;
+  prev: DragPeek | null;
+  moved: boolean;
+  pointerType: 'mouse' | 'touch';
 };
 
 /**
@@ -24,10 +40,15 @@ export default class SliderPlugin implements ZooomPlugin {
   private _pendingSlide: PendingSlide | null = null;
   private _currentImage: HTMLElement | null = null;
   private _options: SliderOptions;
-  private _touchStartX: number = 0;
+  private _drag: DragState | null = null;
+  private _committing: boolean = false;
+  private _swallowNextClick: boolean = false;
   private _counterEl: HTMLDivElement | null = null;
   private _installed: boolean = false;
-  private _preloaded: Set<string> = new Set();
+  // keep references to preloader Image instances so _computeCloneTransform can read their
+  // naturalWidth — without this, peek scale for data-zooom-big images uses the thumbnail's
+  // dimensions, which produces a much smaller zoom than what loadImage would yield
+  private _preloaded: Map<string, HTMLImageElement> = new Map();
 
   constructor(options: SliderOptions = {}) {
     this._options = options;
@@ -51,7 +72,9 @@ export default class SliderPlugin implements ZooomPlugin {
       this._currentImage = image;
       this._clonedImg = ctx.currentClone;
       if (this._clonedImg) {
-        this._clonedImg.addEventListener('click', () => ctx.zoomOut());
+        this._clonedImg.addEventListener('click', () => {
+          if (!ctx.closeButton) ctx.zoomOut();
+        });
       }
       this._showNavigation();
     });
@@ -73,12 +96,26 @@ export default class SliderPlugin implements ZooomPlugin {
     });
 
     document.addEventListener('touchstart', this._handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', this._handleTouchMove, { passive: false });
     document.addEventListener('touchend', this._handleTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', this._handleTouchEnd, { passive: true });
+    document.addEventListener('mousedown', this._handleMouseDown);
+    document.addEventListener('mousemove', this._handleMouseMove);
+    document.addEventListener('mouseup', this._handleMouseUp);
+    // capture-phase click swallow — relies on slider being installed before PanZoom,
+    // so this listener registers (and fires) before PanZoom's click handler
+    document.addEventListener('click', this._handleClickCapture, { capture: true });
+    // re-evaluate hideButtons rule on resize (e.g. crossing a breakpoint) so visibility
+    // stays in sync without requiring the user to close & reopen the zoom
+    if (this._options.hideButtons !== undefined) {
+      window.addEventListener('resize', this._handleResize);
+    }
   }
 
   uninstall(): void {
     this._installed = false;
     this._cancelPendingSlide();
+    this._abortDrag();
     this._prevBtn?.remove();
     this._nextBtn?.remove();
     this._counterEl?.remove();
@@ -87,7 +124,14 @@ export default class SliderPlugin implements ZooomPlugin {
     this._counterEl = null;
     this._preloaded.clear();
     document.removeEventListener('touchstart', this._handleTouchStart);
+    document.removeEventListener('touchmove', this._handleTouchMove);
     document.removeEventListener('touchend', this._handleTouchEnd);
+    document.removeEventListener('touchcancel', this._handleTouchEnd);
+    document.removeEventListener('mousedown', this._handleMouseDown);
+    document.removeEventListener('mousemove', this._handleMouseMove);
+    document.removeEventListener('mouseup', this._handleMouseUp);
+    document.removeEventListener('click', this._handleClickCapture, { capture: true } as EventListenerOptions);
+    window.removeEventListener('resize', this._handleResize);
   }
 
   private _preloadNeighbours(image: HTMLElement): void {
@@ -104,11 +148,15 @@ export default class SliderPlugin implements ZooomPlugin {
 
   private _preloadOne(el?: HTMLElement): void {
     if (!el) return;
-    const url = el.getAttribute('data-zooom-big');
+    // fall back to the displayed src when there's no separate big-image URL —
+    // ensures drag-follow peeks render properly even for galleries without data-zooom-big
+    const url = el.getAttribute('data-zooom-big')
+      || (el as HTMLImageElement).currentSrc
+      || (el as HTMLImageElement).src;
     if (!url || this._preloaded.has(url)) return;
-    this._preloaded.add(url);
     const img = new Image();
     img.src = url;
+    this._preloaded.set(url, img);
   }
 
   private _buildCss(): string {
@@ -213,17 +261,40 @@ export default class SliderPlugin implements ZooomPlugin {
       });
     } else if (nextImage.naturalWidth === 0) {
       nextImage.loading = 'eager';
-      nextImage.addEventListener('load', proceed, { once: true });
-      nextImage.addEventListener('error', proceed, { once: true });
+      const spinner = this._shouldShowLoading();
+      if (spinner) document.body.classList.add('zooom-loading');
+      const done = () => {
+        if (spinner) document.body.classList.remove('zooom-loading');
+        proceed();
+      };
+      nextImage.addEventListener('load', done, { once: true });
+      nextImage.addEventListener('error', done, { once: true });
     } else {
       proceed();
     }
+  }
+
+  private _shouldShowLoading(): boolean {
+    const li = this._options.loadingIndicator;
+    if (li === undefined || li === false) return false;
+    if (li === true) return true;
+    if (li === 'auto') {
+      // Network Information API — Chromium/Edge/Opera only. Safari & Firefox return undefined.
+      const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection;
+      if (!conn) return false;
+      if (conn.saveData) return true;
+      const eff = conn.effectiveType;
+      return eff === 'slow-2g' || eff === '2g' || eff === '3g';
+    }
+    if (typeof li === 'function') return li();
+    return false;
   }
 
   private _navigateWithSlide(nextImage: HTMLImageElement, direction: number): void {
     const ctx = this._ctx;
     const animTime = ctx.animTime;
     const { clientWidth } = document.documentElement;
+    const slideOffset = clientWidth + Math.max(0, this._options.gap ?? 0);
 
     const outgoing = this._clonedImg;
     const outgoingOriginal = this._currentImage!;
@@ -238,6 +309,10 @@ export default class SliderPlugin implements ZooomPlugin {
       const slideOutgoing = document.createElement('img');
       slideOutgoing.src = outgoing.src;
       slideOutgoing.className = 'zooom-clone';
+      // sit above the semi-transparent overlay — same z-index rule as the live clone.
+      // without data-zoomed, the slideOutgoing renders BELOW the overlay and the 90%
+      // white wash makes it look bleached (the "ghost image" effect).
+      slideOutgoing.setAttribute('data-zoomed', 'true');
       slideOutgoing.style.position = 'fixed';
       slideOutgoing.style.top = `${rect.top}px`;
       slideOutgoing.style.left = `${rect.left}px`;
@@ -251,7 +326,7 @@ export default class SliderPlugin implements ZooomPlugin {
       const anim = slideOutgoing.animate(
         [
           { transform: 'translateX(0)' },
-          { transform: `translateX(${-clientWidth * direction}px)` },
+          { transform: `translateX(${-slideOffset * direction}px)` },
         ],
         { duration: animTime, easing: 'ease-in-out', fill: 'forwards' }
       );
@@ -270,7 +345,7 @@ export default class SliderPlugin implements ZooomPlugin {
     this._currentImage = nextImage;
     ctx.setCurrentImage(nextImage);
     nextImage.setAttribute('data-zoomed', 'true');
-    this._cloneImgSlide(nextImage, clientWidth * direction);
+    this._cloneImgSlide(nextImage, slideOffset * direction);
 
     this._showNavigation();
     ctx.notifyOpen(nextImage);
@@ -282,7 +357,7 @@ export default class SliderPlugin implements ZooomPlugin {
     this._clonedImg = document.createElement('img');
     const src = image.dataset.zoooomSrc || image.currentSrc || image.src;
 
-    const { width, height, left, top } = image.getBoundingClientRect();
+    const { width, height, left, top } = resolveImageRect(image);
     const { clientWidth, clientHeight, offsetWidth } = document.documentElement;
 
     const scroll = clientWidth - offsetWidth;
@@ -321,19 +396,40 @@ export default class SliderPlugin implements ZooomPlugin {
     img.style.transform = `matrix(${scale},0,0,${scale},${X},${Y})`;
 
     ctx.setClone(img);
-    img.addEventListener('click', () => ctx.zoomOut());
+    img.addEventListener('click', () => {
+      if (!ctx.closeButton) ctx.zoomOut();
+    });
   }
 
   private _showNavigation(): void {
     if (!this._prevBtn || !this._nextBtn || !this._currentImage) return;
     const index = this._ctx.images.indexOf(this._currentImage as HTMLElement);
-    this._prevBtn.classList.toggle('visible', index > 0);
-    this._nextBtn.classList.toggle('visible', index < this._ctx.images.length - 1);
+    const hide = this._shouldHideButtons();
+    this._prevBtn.classList.toggle('visible', !hide && index > 0);
+    this._nextBtn.classList.toggle('visible', !hide && index < this._ctx.images.length - 1);
     if (this._counterEl) {
       this._counterEl.textContent = `${index + 1} / ${this._ctx.images.length}`;
       this._counterEl.classList.add('visible');
     }
   }
+
+  private _shouldHideButtons(): boolean {
+    const h = this._options.hideButtons;
+    if (h === undefined || h === false) return false;
+    if (h === true) return true;
+    if (h === 'mobile') {
+      return typeof window.matchMedia === 'function'
+        && window.matchMedia('(pointer: coarse)').matches;
+    }
+    if (typeof h === 'number') return document.documentElement.clientWidth <= h;
+    if (typeof h === 'function') return h();
+    return false;
+  }
+
+  private _handleResize = (): void => {
+    // only re-check while a zoom is open — otherwise buttons are already hidden
+    if (this._currentImage) this._showNavigation();
+  };
 
   private _hideNavigation(): void {
     this._prevBtn?.classList.remove('visible');
@@ -341,15 +437,361 @@ export default class SliderPlugin implements ZooomPlugin {
     this._counterEl?.classList.remove('visible');
   }
 
+  private _handleMouseDown = (event: MouseEvent): void => {
+    if (event.button !== 0) return;
+    if (!this._canBeginDrag(event.target)) return;
+    this._beginDrag(event.clientX, 'mouse');
+  };
+
+  private _handleMouseMove = (event: MouseEvent): void => {
+    if (!this._drag || this._drag.pointerType !== 'mouse') return;
+    this._updateDrag(event.clientX);
+  };
+
+  private _handleMouseUp = (event: MouseEvent): void => {
+    if (!this._drag || this._drag.pointerType !== 'mouse') return;
+    this._endDrag(event.clientX);
+  };
+
   private _handleTouchStart = (event: TouchEvent): void => {
-    if (!this._currentImage) return;
-    this._touchStartX = event.changedTouches[0].clientX;
+    if (event.touches.length !== 1) { this._abortDrag(); return; }
+    if (!this._canBeginDrag(event.target)) return;
+    this._beginDrag(event.changedTouches[0].clientX, 'touch');
+  };
+
+  private _handleTouchMove = (event: TouchEvent): void => {
+    if (!this._drag || this._drag.pointerType !== 'touch') return;
+    // multi-touch (likely pinch) — bail out so PanZoom takes over
+    if (event.touches.length !== 1) { this._abortDrag(); return; }
+    // only block page-scroll once we've actually started moving the clone
+    if (this._drag.moved && event.cancelable) event.preventDefault();
+    this._updateDrag(event.touches[0].clientX);
   };
 
   private _handleTouchEnd = (event: TouchEvent): void => {
-    if (!this._currentImage) return;
-    const dx = event.changedTouches[0].clientX - this._touchStartX;
-    if (Math.abs(dx) < 50) return;
-    this._navigateBy(dx < 0 ? 1 : -1);
+    if (!this._drag || this._drag.pointerType !== 'touch') return;
+    const endX = event.changedTouches[0]?.clientX ?? this._drag.startX;
+    this._endDrag(endX);
   };
+
+  private _handleClickCapture = (event: MouseEvent): void => {
+    if (!this._swallowNextClick) return;
+    this._swallowNextClick = false;
+    event.stopImmediatePropagation();
+    event.preventDefault();
+  };
+
+  private _canBeginDrag(target: EventTarget | null): boolean {
+    if (this._committing) return false;
+    if (!this._currentImage || !this._clonedImg) return false;
+    const el = target as Element | null;
+    if (el?.closest?.('.zooom-nav-btn,.zooom-close-btn')) return false;
+    return true;
+  }
+
+  private _beginDrag(startX: number, pointerType: 'mouse' | 'touch'): void {
+    // a lingering pending slide animation would fight the drag — kill it first
+    this._cancelPendingSlide();
+    const clone = this._clonedImg!;
+    const vw = document.documentElement.clientWidth;
+    const gap = Math.max(0, this._options.gap ?? 0);
+    this._drag = {
+      startX,
+      vw,
+      slideOffset: vw + gap,
+      baseTransform: clone.style.transform,
+      baseTransition: clone.style.transition,
+      next: null,
+      prev: null,
+      moved: false,
+      pointerType,
+    };
+  }
+
+  private _updateDrag(currentX: number): void {
+    const d = this._drag;
+    if (!d) return;
+    const dx = currentX - d.startX;
+    if (!d.moved) {
+      // dead zone so a small jitter on click doesn't trigger drag-follow
+      if (Math.abs(dx) < 5) return;
+      d.moved = true;
+      this._clonedImg!.style.transition = 'none';
+      this._createPeeks(d);
+    }
+    this._applyDragOffset(dx);
+  }
+
+  private _createPeeks(d: DragState): void {
+    const ctx = this._ctx;
+    const idx = ctx.images.indexOf(this._currentImage!);
+    const next = ctx.images[idx + 1] as HTMLImageElement | undefined;
+    const prev = ctx.images[idx - 1] as HTMLImageElement | undefined;
+    if (next) d.next = this._createPeek(next, d.slideOffset);
+    if (prev) d.prev = this._createPeek(prev, -d.slideOffset);
+  }
+
+  private _createPeek(image: HTMLImageElement, baseOffsetX: number): DragPeek {
+    // show thumbnail immediately so peek is always visible without waiting for network —
+    // consistent with PhotoSwipe's behaviour during load
+    const thumbnailSrc = this._resolvePeekSrc(image);
+    const bigSrc = image.dataset.zoooomSrc || image.getAttribute('data-zooom-big') || null;
+    const peek = document.createElement('img');
+    peek.src = thumbnailSrc;
+    peek.className = 'zooom-clone zooom-drag-peek';
+    // [data-zoomed="true"] rule provides the z-index that puts the peek above the overlay —
+    // without it, the 0.9-opacity overlay washes the peek out and it looks faded
+    peek.setAttribute('data-zoomed', 'true');
+    peek.style.position = 'fixed';
+    peek.style.willChange = 'transform';
+    peek.style.pointerEvents = 'none';
+    peek.style.transition = 'none';
+
+    const result: DragPeek = { el: peek, matrix: '' };
+    // (re)compute size/position/scale and apply. for a lazy image not yet loaded the
+    // geometry is a best-effort guess (see resolveImageRect); we rerun this on load when
+    // the real natural dimensions are known, which fixes wrong aspect ratio / scale=1 for
+    // images missing width/height attributes. preserveOffset keeps whatever translateX the
+    // drag (or commit) has already applied so the rerun doesn't jump the element.
+    const applyGeometry = (preserveOffset: boolean): void => {
+      const t = this._computeCloneTransform(image);
+      result.matrix = `matrix(${t.scale},0,0,${t.scale},${t.X},${t.Y})`;
+      peek.style.top = `${t.rect.top}px`;
+      peek.style.left = `${t.rect.left}px`;
+      peek.style.width = `${t.rect.width}px`;
+      peek.style.height = `${t.rect.height}px`;
+      let offset = `translate3d(${baseOffsetX}px,0,0)`;
+      if (preserveOffset) {
+        // keep the current translateX (drag/commit). a committed clone carries a bare
+        // matrix() with no translate3d — treat that as offset 0, not the peek's start offset.
+        const m = /translate3d\([^)]*\)/.exec(peek.style.transform || '');
+        offset = m ? m[0] : 'translate3d(0px,0,0)';
+      }
+      peek.style.transform = `${offset} ${result.matrix}`;
+    };
+    applyGeometry(false);
+    document.body.appendChild(peek);
+
+    // upgrade to big version once it's ready (swap is invisible if drag is still ongoing)
+    if (bigSrc && bigSrc !== thumbnailSrc) {
+      const loader = new Image();
+      loader.onload = () => { if (peek.isConnected) peek.src = bigSrc; };
+      loader.src = bigSrc;
+    } else if (image.naturalWidth === 0) {
+      // lazy / not-yet-loaded image (common for <picture><img loading="lazy">).
+      // _resolvePeekSrc already gives a displayable URL; force the original to load eagerly
+      // so we can promote the peek to the exact currentSrc and recompute correct geometry.
+      image.loading = 'eager';
+      const onLoad = () => {
+        if (peek.isConnected) {
+          const resolved = image.currentSrc || image.src;
+          if (resolved && resolved !== peek.src) peek.src = resolved;
+          applyGeometry(true);
+        }
+        image.removeEventListener('load', onLoad);
+      };
+      image.addEventListener('load', onLoad, { once: true });
+    }
+    return result;
+  }
+
+  /**
+   * Resolve a displayable URL for a peek synchronously — critical for a not-yet-loaded
+   * <picture><img>, where `image.currentSrc` is empty and `image.src` is the bare fallback
+   * (often absent, which resolves to the page URL → broken/empty peek). Reads the matching
+   * <source>/srcset so the peek shows the right image immediately instead of waiting for the
+   * async eager-load to fill it in.
+   */
+  private _resolvePeekSrc(image: HTMLImageElement): string {
+    // browser already chose a source (image has loaded at least once)
+    if (image.currentSrc) return image.currentSrc;
+    const parent = image.parentElement;
+    if (parent && parent.tagName === 'PICTURE') {
+      const sources = parent.querySelectorAll('source');
+      for (let i = 0; i < sources.length; i++) {
+        const s = sources[i];
+        const media = s.getAttribute('media');
+        // skip a <source> whose media query doesn't apply to the current viewport
+        if (media && typeof window.matchMedia === 'function' && !window.matchMedia(media).matches) continue;
+        const url = this._firstSrcsetUrl(s.getAttribute('srcset'));
+        if (url) return url;
+      }
+    }
+    // plain <img srcset> before currentSrc resolves, or a bare src
+    return this._firstSrcsetUrl(image.getAttribute('srcset')) || image.src;
+  }
+
+  /** First candidate URL from a `srcset` string ("a.jpg 1x, b.jpg 2x" → "a.jpg"), absolutised. */
+  private _firstSrcsetUrl(srcset: string | null): string {
+    if (!srcset) return '';
+    const first = srcset.split(',')[0]?.trim().split(/\s+/)[0];
+    if (!first) return '';
+    try { return new URL(first, document.baseURI).href; } catch { return first; }
+  }
+
+  private _applyDragOffset(dx: number): void {
+    const d = this._drag;
+    if (!d || !this._clonedImg) return;
+    this._clonedImg.style.transform = `translate3d(${dx}px,0,0) ${d.baseTransform}`;
+    if (d.next) d.next.el.style.transform = `translate3d(${dx + d.slideOffset}px,0,0) ${d.next.matrix}`;
+    if (d.prev) d.prev.el.style.transform = `translate3d(${dx - d.slideOffset}px,0,0) ${d.prev.matrix}`;
+  }
+
+  private _endDrag(currentX: number): void {
+    const d = this._drag;
+    if (!d) return;
+    const dx = currentX - d.startX;
+    if (!d.moved) {
+      // never crossed dead zone — treat as click, no cleanup needed
+      this._drag = null;
+      return;
+    }
+    const threshold = Math.max(50, d.vw * 0.2);
+    const idx = this._ctx.images.indexOf(this._currentImage!);
+    const direction = dx < 0 ? 1 : -1;
+    const targetIdx = idx + direction;
+    const canCommit = Math.abs(dx) >= threshold
+      && targetIdx >= 0 && targetIdx < this._ctx.images.length;
+    if (canCommit) this._commitDrag(d, dx, direction);
+    else this._cancelDrag(d, dx);
+  }
+
+  private _abortDrag(): void {
+    // called when state becomes inconsistent (e.g. second touch during drag).
+    // restore clone in place, drop peeks, no animation.
+    const d = this._drag;
+    if (!d) return;
+    this._drag = null;
+    if (this._clonedImg) {
+      this._clonedImg.style.transition = d.baseTransition;
+      this._clonedImg.style.transform = d.baseTransform;
+    }
+    d.next?.el.remove();
+    d.prev?.el.remove();
+  }
+
+  private _cancelDrag(d: DragState, dx: number): void {
+    this._drag = null;
+    const clone = this._clonedImg!;
+    const dur = Math.min(260, Math.max(140, Math.abs(dx) * 1.4));
+    clone.style.transition = `transform ${dur}ms ease-out`;
+    clone.style.transform = `translate3d(0px,0,0) ${d.baseTransform}`;
+    if (d.next) {
+      d.next.el.style.transition = `transform ${dur}ms ease-out`;
+      d.next.el.style.transform = `translate3d(${d.slideOffset}px,0,0) ${d.next.matrix}`;
+    }
+    if (d.prev) {
+      d.prev.el.style.transition = `transform ${dur}ms ease-out`;
+      d.prev.el.style.transform = `translate3d(${-d.slideOffset}px,0,0) ${d.prev.matrix}`;
+    }
+    // any synthetic click after a drag-cancel should not toggle zoom
+    this._swallowNextClick = true;
+    setTimeout(() => { this._swallowNextClick = false; }, 50);
+    setTimeout(() => {
+      if (clone === this._clonedImg) {
+        clone.style.transition = d.baseTransition;
+        clone.style.transform = d.baseTransform;
+      }
+      d.next?.el.remove();
+      d.prev?.el.remove();
+    }, dur);
+  }
+
+  private _commitDrag(d: DragState, dx: number, direction: number): void {
+    this._drag = null;
+    this._committing = true;
+    const ctx = this._ctx;
+    const clone = this._clonedImg!;
+    const target = direction === 1 ? d.next : d.prev;
+    const other = direction === 1 ? d.prev : d.next;
+    other?.el.remove();
+
+    const remaining = d.vw - Math.abs(dx);
+    const dur = Math.min(320, Math.max(160, remaining * 0.45));
+    clone.style.transition = `transform ${dur}ms ease-out`;
+    clone.style.transform = `translate3d(${-direction * d.slideOffset}px,0,0) ${d.baseTransform}`;
+    if (target) {
+      target.el.style.transition = `transform ${dur}ms ease-out`;
+      target.el.style.transform = `translate3d(0px,0,0) ${target.matrix}`;
+    }
+    // suppress the synthetic click that follows mouseup after a drag
+    this._swallowNextClick = true;
+    setTimeout(() => { this._swallowNextClick = false; }, 50);
+
+    setTimeout(() => {
+      this._committing = false;
+      if (!target) return;
+      const oldImage = this._currentImage as HTMLElement;
+      const idx = ctx.images.indexOf(oldImage);
+      const newImage = ctx.images[idx + direction] as HTMLImageElement;
+      if (!newImage) return;
+
+      ctx.notifyClose(oldImage);
+      oldImage.setAttribute('data-zoomed', 'false');
+      oldImage.style.removeProperty('visibility');
+      clone.parentNode?.removeChild(clone);
+
+      // promote the peek to be the new active clone
+      target.el.style.transition = '';
+      target.el.style.transform = target.matrix;
+      target.el.className = 'zooom-clone';
+      target.el.style.willChange = '';
+      target.el.style.pointerEvents = '';
+      target.el.setAttribute('data-zoomed', 'true');
+      target.el.addEventListener('click', () => {
+        if (!ctx.closeButton) ctx.zoomOut();
+      });
+
+      this._currentImage = newImage;
+      ctx.setCurrentImage(newImage);
+      newImage.setAttribute('data-zoomed', 'true');
+      newImage.style.setProperty('visibility', 'hidden');
+      this._clonedImg = target.el;
+      ctx.setClone(target.el);
+
+      this._showNavigation();
+      ctx.notifyOpen(newImage);
+
+      // upgrade peek to the big image if it hasn't been loaded yet
+      const bigImage = newImage.getAttribute('data-zooom-big');
+      if (bigImage) {
+        loadImage(newImage, bigImage).then(() => {
+          document.body.classList.remove('zooom-loading');
+          if (this._clonedImg === target.el && newImage.dataset.zoooomSrc) {
+            target.el.src = newImage.dataset.zoooomSrc;
+          }
+        });
+      }
+    }, dur);
+  }
+
+  private _computeCloneTransform(image: HTMLImageElement): { rect: { width: number; height: number; left: number; top: number }; scale: number; X: number; Y: number } {
+    const rect = resolveImageRect(image);
+    const { clientWidth, clientHeight, offsetWidth } = document.documentElement;
+    const scroll = clientWidth - offsetWidth;
+    const X = (clientWidth - scroll) / 2 - rect.left - rect.width / 2;
+    const Y = -rect.top + (clientHeight - rect.height) / 2;
+    const ratio = rect.height / rect.width;
+    // when data-zooom-big is still set, the gallery img element holds only the thumbnail —
+    // its naturalWidth would yield a too-small scale. prefer the preloaded big image's
+    // dimensions; if that isn't loaded yet, fall back to clientWidth (assume viewport-fill)
+    // so the peek lands at roughly the same size the post-load clone will end up at.
+    const bigUrl = image.getAttribute('data-zooom-big');
+    let maxWidth: number;
+    if (bigUrl) {
+      const preloaded = this._preloaded.get(bigUrl);
+      maxWidth = (preloaded && preloaded.naturalWidth > 0)
+        ? preloaded.naturalWidth
+        : clientWidth;
+    } else {
+      maxWidth = image.naturalWidth
+        || parseInt(image.getAttribute('width') ?? '0')
+        || rect.width;
+    }
+    if (maxWidth >= clientWidth) maxWidth = clientWidth;
+    const maxHeight = maxWidth * ratio;
+    if (maxHeight >= clientHeight) maxWidth = (maxWidth * clientHeight) / maxHeight;
+    const scale = maxWidth !== rect.width ? maxWidth / rect.width : 1;
+    return { rect, scale, X, Y };
+  }
 }

@@ -21,29 +21,36 @@ See the demo - [example](https://tomickigrzegorz.github.io/zooom.js/)
 ### CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.1/dist/zooom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.4.0/dist/zooom.min.js"></script>
 <!-- optional: navigation between zoomed images -->
-<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.2.1/dist/zooom-slider.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.4.0/dist/zooom-slider.min.js"></script>
+<!-- optional: wheel/dblclick/pinch/pan zoom -->
+<script src="https://cdn.jsdelivr.net/gh/tomickigrzegorz/zooom.js@1.4.0/dist/zooom-panzoom.min.js"></script>
 ```
 
 > The `dist` folder contains IIFE, UMD and ESM builds as well as minified `*.min.js` versions.
 
-### npm / yarn
+### npm / yarn / pnpm
 
 ```bash
 npm install zooom
 # or
 yarn add zooom
+# or
+pnpm add zooom
 ```
 
 ```javascript
 import Zooom from "zooom";
 import SliderPlugin from "zooom/slider";
+import PanZoomPlugin from "zooom/panzoom";
 
-new Zooom("img-zoom").use(new SliderPlugin({ effect: "slide" }));
+new Zooom("img-zoom")
+  .use(new SliderPlugin({ effect: "slide" }))
+  .use(new PanZoomPlugin());
 ```
 
-TypeScript declarations ship in `dist/types/` — `Zooom`, `SliderPlugin`, and the public types (`ConstructorObject`, `ZooomContext`, `ZooomPlugin`, `SliderOptions`, etc.) are all typed out of the box.
+TypeScript declarations ship in `dist/types/` — `Zooom`, `SliderPlugin`, `PanZoomPlugin`, and the public types (`ConstructorObject`, `ZooomContext`, `ZooomPlugin`, `SliderOptions`, `PanZoomOptions`, etc.) are all typed out of the box.
 
 ### Download
 
@@ -51,6 +58,7 @@ Download from the `dist` folder and add to your HTML:
 
 - `dist/zooom.min.js` — core library
 - `dist/zooom-slider.min.js` — SliderPlugin (optional)
+- `dist/zooom-panzoom.min.js` — PanZoomPlugin (optional)
 
 ## Basic usage
 
@@ -82,6 +90,7 @@ Download from the `dist` folder and add to your HTML:
 | animationTime  |  Number  |        `300`         |          | Zoom animation duration in milliseconds                                                                                                   |
 | cursor.in/out  |  String  | `zoom-in / zoom-out` |          | CSS cursor value shown when hovering over zoomable / zoomed images                                                                        |
 | overlay        |  String  |                      |          | Background overlay color and opacity — e.g. `rgba(255,255,255,0.9)` or `hsla(0,0%,100%,0.9)`                                             |
+| closeButton    | Boolean  |       `false`        |          | When `true`, renders an X button at top-right and disables image-click-to-close. Overlay click and `Escape` still close. Recommended when using `PanZoomPlugin`. |
 | data-zooom-big |  string  |                      |          | URL of the full-size image to load on click instead of the thumbnail                                                                      |
 | onResize       | Function |                      |          | Called on window resize. Return `true` to disable zooming (e.g. on small screens)                                                        |
 | onOpen         | Function |                      |          | Callback fired when an image is zoomed in. Receives the image element as argument                                                         |
@@ -104,6 +113,7 @@ new Zooom("img-zoom", {
     out: "zoom-out",
   },
   overlay: "rgba(255,255,255,0.9)",
+  closeButton: false,
   onResize: function () {},
   onOpen: function (element) {},
   onClose: function (element) {},
@@ -151,16 +161,66 @@ new Zooom("img-zoom", {
 
 #### SliderPlugin options
 
-| prop    |  type   | default | description                                                                                                                                       |
-| ------- | :-----: | :-----: | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| effect  | String  |         | Set to `"slide"` to enable slide-transition navigation. Omit for an instant image swap.                                                           |
-| counter | Boolean | `false` | Show an image counter in the top-left corner, e.g. `1 / 10`.                                                                                      |
-| preload | Number  |   `0`   | Preload N neighbour images on each side of the opened image (only those with `data-zooom-big`). `0` disables. `1` warms the immediate prev/next. |
+| prop        |             type             | default | description                                                                                                                                       |
+| ----------- | :--------------------------: | :-----: | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| effect      |            String            |         | Set to `"slide"` to enable slide-transition navigation. Omit for an instant image swap.                                                           |
+| counter     |           Boolean            | `false` | Show an image counter in the top-left corner, e.g. `1 / 10`.                                                                                      |
+| preload     |            Number            |   `0`   | Preload N neighbour images on each side of the opened image (uses `data-zooom-big` when present, otherwise the displayed `src`). `0` disables. `1` warms the immediate prev/next. |
+| hideButtons | Boolean \| Number \| String \| Function |         | Hide prev/next arrow buttons. Keyboard, swipe and mouse-drag still navigate. See below for accepted values.                                       |
+| gap         |            Number            |   `0`   | Visual spacing in pixels between adjacent images during swipe/drag and the `effect: 'slide'` animation. Useful on mobile to separate slides.    |
+| loadingIndicator | Boolean \| String \| Function |       | Toggle `.zooom-loading` on `<body>` while a navigated-to image is loading (e.g. lazy `<img>` or `<picture>`). See accepted values below.   |
 
 Navigation is triggered by:
 - **Buttons** — prev/next arrows shown at the sides of the zoomed image
 - **Keyboard** — `←` / `→` arrow keys
 - **Touch** — swipe left/right (min 50 px)
+- **Mouse** — click & drag left/right on the zoomed image
+
+##### `hideButtons` values
+
+| value          | behaviour                                                                          |
+| -------------- | ---------------------------------------------------------------------------------- |
+| `true`         | Always hide the arrow buttons.                                                     |
+| `768` (number) | Hide when viewport width is ≤ N px. Re-evaluated on window resize.                 |
+| `"mobile"`     | Hide on coarse-pointer (touch) devices, detected via `(pointer: coarse)`.          |
+| `() => bool`   | Custom predicate. Called on every open and on window resize; return `true` = hide. |
+
+```javascript
+// hide on phones/tablets, keep on desktops
+new Zooom("img-zoom").use(new ZooomSlider({ effect: "slide", hideButtons: "mobile" }));
+
+// hide on narrow viewports
+new Zooom("img-zoom").use(new ZooomSlider({ effect: "slide", hideButtons: 768 }));
+
+// always hide — rely on keyboard/swipe/drag only
+new Zooom("img-zoom").use(new ZooomSlider({ effect: "slide", hideButtons: true }));
+```
+
+#### With gap between slides
+
+```javascript
+new Zooom("img-zoom").use(new ZooomSlider({ effect: "slide", gap: 16 }));
+```
+
+#### With loading indicator
+
+The plugin toggles a `zooom-loading` class on `<body>` — host page styles the spinner. (The demo CSS already ships one — see `sources/scss/style.scss` for the rule.)
+
+##### `loadingIndicator` values
+
+| value          | behaviour                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| `true`         | Always show the spinner while the next image loads.                                                |
+| `"auto"`       | Show only on slow networks (`navigator.connection.effectiveType` ≤ `3g`, or `saveData`). Chromium-only — silently no-op in Safari/Firefox. |
+| `() => bool`   | Custom predicate. Called per navigation; return `true` = show.                                     |
+
+```javascript
+// always show while next image loads
+new Zooom("img-zoom").use(new ZooomSlider({ effect: "slide", loadingIndicator: true }));
+
+// only on 3G or worse / data-saver mode
+new Zooom("img-zoom").use(new ZooomSlider({ effect: "slide", loadingIndicator: "auto" }));
+```
 
 #### With counter
 
@@ -184,6 +244,55 @@ new Zooom("img-zoom", {
 }).use(new ZooomSlider({ effect: "slide", preload: 1 }));
 ```
 
+### PanZoomPlugin
+
+Adds wheel + double-click + pinch + drag-to-pan zoom on the active image, so users can zoom in beyond the fit-to-viewport scale and pan around the zoomed image.
+
+Add the panzoom script after the core library (and, if used together, after `zooom-slider`):
+
+```html
+<script src="path/to/zooom.min.js"></script>
+<script src="path/to/zooom-slider.min.js"></script>
+<script src="path/to/zooom-panzoom.min.js"></script>
+```
+
+```javascript
+new Zooom("img-zoom", {
+  zIndex: 9,
+  animationTime: 300,
+  overlay: "rgba(255,255,255,0.9)",
+  closeButton: true,
+})
+  .use(new ZooomSlider({ effect: "slide" }))
+  .use(new ZooomPanZoom({ maxScale: 3 }));
+```
+
+> **Tip.** Enable `closeButton: true` when using `PanZoomPlugin` — it disables image-click-to-close so single-clicks during pan/zoom never accidentally dismiss the zoom.
+
+> **Plugin order matters.** When using both, install SliderPlugin **before** PanZoomPlugin (`.use(slider).use(panzoom)`). PanZoom layers its gesture handling on top of the slider's; the order keeps the mental model consistent.
+
+#### PanZoomPlugin options
+
+| prop             |  type  | default | description                                                                                                |
+| ---------------- | :----: | :-----: | ---------------------------------------------------------------------------------------------------------- |
+| maxScale         | Number |   `3`   | Maximum scale multiplier beyond the core's fit-to-viewport base (so the maximum total zoom is `base × maxScale`). |
+| doubleClickScale | Number |   `2`   | Scale applied on double-click (and reverted on next double-click), as a multiplier of the base scale.       |
+| wheelStep        | Number | `0.15`  | Scale delta applied per mouse-wheel tick.                                                                  |
+
+Gestures:
+- **Mouse wheel** — zoom in/out, anchored on the cursor
+- **Double click** — toggle between base scale and `doubleClickScale × base` (200 ms ease-out)
+- **Pinch** — zoom in/out, anchored on the pinch midpoint
+- **Mouse drag / touch drag** — pan the image when zoomed (clamped to viewport edges)
+
+Coordination with `SliderPlugin`:
+- At base scale, horizontal swipe still navigates between images (slider takes the gesture)
+- While zoomed, horizontal swipe pans the image instead — slider's swipe is blocked
+- Slider buttons and `←` / `→` keys continue to work while zoomed in
+- `Escape` closes the zoom from whatever pan/zoom position it's currently at
+
+> Click-to-close has a 300 ms latency while PanZoomPlugin is installed (we wait to see if a second click follows for a double-click). `Escape` stays instant.
+
 ### Writing your own plugin
 
 A plugin is any object that implements the `ZooomPlugin` interface:
@@ -206,6 +315,7 @@ interface ZooomContext {
   readonly animTime: number;                       // animation duration (ms)
   readonly zIndex: number;                         // base z-index
   readonly overlayLayer: HTMLDivElement;
+  readonly closeButton: boolean;                   // whether closeButton mode is on
   on(event: 'open' | 'close' | 'keydown', handler: Function): void;
   zoomIn(image: HTMLElement, instant?: boolean): void;
   zoomOut(): void;
@@ -231,6 +341,8 @@ Display a thumbnail and load the full-size image only on click using `data-zooom
   src="./image-thumbnail.jpg"
 />
 ```
+
+> **Always set both `width` and `height` on `loading="lazy"` images** (including the `<img>` inside `<picture>`). Before a lazy image loads, the browser uses these attributes to reserve its aspect ratio — without them the element measures `0` height, which Zooom needs to size and scale the zoomed clone correctly from the first frame. Omitting them also causes layout shift in the gallery itself.
 
 ## Prevent zoom on small screens
 
@@ -286,15 +398,15 @@ Zooom is keyboard-accessible and screen-reader friendly out of the box — no co
 ```bash
 git clone https://github.com/tomickigrzegorz/zooom.js.git
 cd zooom
-yarn
+pnpm install
 ```
 
 ```bash
 # start dev server with live reload
-yarn dev
+pnpm dev
 
 # production build
-yarn build
+pnpm build
 ```
 
 ## Browser support

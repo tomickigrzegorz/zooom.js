@@ -1,4 +1,4 @@
-import { fadeIn, fadeOut, debounce, loadImage } from "./utils/function";
+import { fadeIn, fadeOut, debounce, loadImage, resolveImageRect } from "./utils/function";
 import type {
   ConstructorObject,
   ObjectCursor,
@@ -40,6 +40,8 @@ export default class Zooom {
   private _coreClones: WeakSet<HTMLImageElement> = new WeakSet();
   // element that had focus before the zoom opened — restored on close
   private _returnFocus: HTMLElement | null = null;
+  private _closeButton: boolean;
+  private _closeBtn: HTMLButtonElement | null = null;
 
   constructor(
     className: string,
@@ -48,6 +50,7 @@ export default class Zooom {
       animationTime,
       cursor,
       overlay,
+      closeButton = false,
       onResize = () => {},
       onOpen = () => {},
       onClose = () => {},
@@ -63,6 +66,7 @@ export default class Zooom {
     this._allImages = [];
     this._plugins = [];
     this._listeners = new Map();
+    this._closeButton = closeButton;
 
     this._onResize = onResize;
     this._onOpen = onOpen;
@@ -88,6 +92,7 @@ export default class Zooom {
 
     this._eventHandle();
     this._createStyleAndAddToHead();
+    this._createCloseButton();
   }
 
   use = (plugin: ZooomPlugin): this => {
@@ -107,6 +112,7 @@ export default class Zooom {
       get animTime() { return self._animTime!; },
       get zIndex() { return self._zIndex; },
       get overlayLayer() { return self._overlayLayer; },
+      get closeButton() { return self._closeButton; },
       on(event: ZooomEvent, handler: (...args: any[]) => void) {
         if (!self._listeners.has(event)) {
           self._listeners.set(event, []);
@@ -197,6 +203,7 @@ export default class Zooom {
         this._zooomInit();
       }
     } else if (dataZoomed === "true" || target.id === this._overlayId) {
+      if (this._closeButton && dataZoomed === "true") return;
       this._handleEvent();
     }
   };
@@ -206,6 +213,7 @@ export default class Zooom {
     if (!imagezooom) return;
 
     this._reset();
+    this._closeBtn?.classList.remove("visible");
 
     setTimeout(() => {
       imagezooom.setAttribute(this._dataAttr, "false");
@@ -265,10 +273,29 @@ export default class Zooom {
       this._animTime
     }ms ease-in-out;}`;
 
+    const closeBtnCss = this._closeButton
+      ? `.zooom-close-btn{position:fixed;top:16px;right:16px;z-index:${this._zIndex + 10};background:rgba(255,255,255,0.85);color:#222;border:none;border-radius:50%;width:36px;height:36px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 200ms ease-in-out,background 200ms ease;box-shadow:0 2px 8px rgba(0,0,0,0.2);}.zooom-close-btn.visible{opacity:1;pointer-events:auto;}.zooom-close-btn:hover{background:rgba(255,255,255,1);}`
+      : "";
+
     document.head.insertAdjacentHTML(
       "beforeend",
-      `<style>html{scrollbar-gutter:stable}${css}${background}</style>`
+      `<style>html{scrollbar-gutter:stable}${css}${background}${closeBtnCss}</style>`
     );
+  };
+
+  _createCloseButton = () => {
+    if (!this._closeButton) return;
+    const btn = document.createElement("button");
+    btn.className = "zooom-close-btn";
+    btn.setAttribute("aria-label", "Close");
+    btn.innerHTML =
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._handleEvent();
+    });
+    document.body.appendChild(btn);
+    this._closeBtn = btn;
   };
 
   _zooomInit = (instant = false) => {
@@ -288,6 +315,7 @@ export default class Zooom {
       this._imageZooom.alt || "Zoomed image"
     );
 
+    this._closeBtn?.classList.add("visible");
     this._cloneImg(this._imageZooom, instant);
     fadeIn(this._overlayLayer, this._overlay);
     this._onOpen(this._imageZooom);
@@ -298,7 +326,7 @@ export default class Zooom {
     this._clonedImg = document.createElement("img");
     let src = image.dataset.zoooomSrc || image.currentSrc || image.src;
 
-    let { width, height, left, top } = image.getBoundingClientRect();
+    let { width, height, left, top } = resolveImageRect(image);
 
     const { clientWidth, clientHeight, offsetWidth } = document.documentElement;
 
