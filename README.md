@@ -52,6 +52,15 @@ new Zooom("img-zoom")
 
 TypeScript declarations ship in `dist/types/` — `Zooom`, `SliderPlugin`, `PanZoomPlugin`, and the public types (`ConstructorObject`, `ZooomContext`, `ZooomPlugin`, `SliderOptions`, `PanZoomOptions`, etc.) are all typed out of the box.
 
+> **Plugin names differ by how you load them.** The plugins are default exports, so the name depends on the build:
+>
+> | Loading method | Slider | PanZoom |
+> | --- | --- | --- |
+> | `<script>` tag (IIFE/UMD) — uses the global name | `ZooomSlider` | `ZooomPanZoom` |
+> | `import` (npm / bundler) — name is yours to choose | e.g. `SliderPlugin` | e.g. `PanZoomPlugin` |
+>
+> In the browser the global is **`ZooomSlider`** / **`ZooomPanZoom`** — `new SliderPlugin(...)` will be `undefined`. With a bundler you can name the import anything (`import ZooomSlider from "zooom/slider"` works just as well).
+
 ### Download
 
 Download from the `dist` folder and add to your HTML:
