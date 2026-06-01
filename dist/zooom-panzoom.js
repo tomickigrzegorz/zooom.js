@@ -1,6 +1,6 @@
 /*!
 * Zooom.js PanZoomPlugin - wheel/dblclick/pinch/pan zoom plugin for Zooom
-* @version v1.3.0
+* @version v1.4.0
 * @link https://github.com/tomickigrzegorz/zooom.js
 * @license MIT
 */
@@ -24,9 +24,10 @@ var ZooomPanZoom = (function () {
             this._base = { scale: 1, x: 0, y: 0 };
             this._current = { scale: 1, x: 0, y: 0 };
             this._installed = false;
-            this._clickTimer = null;
-            this._clickPending = null;
             this._animating = false;
+            // cached layout reads — populated in _onOpen, used in _clampPan to avoid forced
+            // reflows on every mousemove. invalidated on close and on window resize.
+            this._layout = null;
             this._panStart = { x: 0, y: 0 };
             this._panStartCurrent = { x: 0, y: 0 };
             this._panActive = false;
@@ -38,6 +39,11 @@ var ZooomPanZoom = (function () {
             this._touchPanActive = false;
             this._touchPanStart = { x: 0, y: 0 };
             this._touchPanStartCurrent = { x: 0, y: 0 };
+            this._onResize = () => {
+                if (this._clone)
+                    this._cacheLayout();
+            };
+            this._preventDrag = (e) => { e.preventDefault(); };
             this._onWheel = (event) => {
                 if (!this._installed || !this._clone)
                     return;
@@ -49,36 +55,46 @@ var ZooomPanZoom = (function () {
             this._onClick = (event) => {
                 if (!this._installed || !this._clone)
                     return;
-                // ignore clicks on slider buttons — they should still work
+                // ignore clicks on slider/close buttons — they should still work
                 const target = event.target;
-                if (target && target.closest && target.closest('.zooom-nav-btn'))
+                if (target && target.closest && target.closest('.zooom-nav-btn,.zooom-close-btn'))
                     return;
-                // suppress core's window-level close handler for *every* click while we own the zoom
+                // click outside the image (overlay/backdrop) → don't intercept; let the core's
+                // window-level handler close the zoom, matching Escape / close-button behaviour
+                if (target !== this._clone)
+                    return;
+                // click landed on the clone — we own the toggle; block core's close handler
                 event.stopPropagation();
-                if (this._clickTimer !== null) {
-                    // second click within window → dblclick
-                    clearTimeout(this._clickTimer);
-                    this._clickTimer = null;
-                    this._clickPending = null;
-                    this._doubleClickToggle(event.clientX, event.clientY);
+                // synthetic click after a pan gesture — don't toggle, just consume
+                if (this._panMoved) {
+                    this._panMoved = false;
                     return;
                 }
-                this._clickPending = { x: event.clientX, y: event.clientY };
-                this._clickTimer = setTimeout(() => {
-                    this._clickTimer = null;
-                    this._clickPending = null;
-                    this._ctx.zoomOut();
-                }, 300);
+                this._toggleZoom(event.clientX, event.clientY);
             };
             this._onMouseDown = (event) => {
-                if (!this._installed || !this._clone || !this.isZoomed)
+                if (!this._installed || !this._clone)
                     return;
                 if (event.button !== 0)
                     return;
-                this._panActive = true;
+                // a fresh primary-button press starts a new gesture — clear any stale post-pan
+                // flag here, BEFORE the isZoomed guard. otherwise: pan while zoomed (sets
+                // _panMoved), wheel out to base scale (isZoomed→false), then click — the guard
+                // below would early-return and leave _panMoved set, so _onClick consumes the
+                // click as a synthetic post-drag click instead of toggling the zoom.
                 this._panMoved = false;
+                if (!this.isZoomed)
+                    return;
+                // when zoomed, we own the gesture — block slider's bubble-phase mousedown so
+                // pan drags don't get reinterpreted as swipe-to-navigate on release
+                event.stopPropagation();
+                // belt-and-suspenders: also blocks native image drag if dragstart handler somehow misses
+                event.preventDefault();
+                this._cancelAnim();
+                this._panActive = true;
                 this._panStart = { x: event.clientX, y: event.clientY };
                 this._panStartCurrent = { x: this._current.x, y: this._current.y };
+                this._clone.style.cursor = 'grabbing';
             };
             this._onMouseMove = (event) => {
                 if (!this._panActive)
@@ -100,10 +116,14 @@ var ZooomPanZoom = (function () {
                 if (!this._panActive)
                     return;
                 this._panActive = false;
+                if (this._clone)
+                    this._clone.style.cursor = 'grab';
+                // we owned this gesture (mousedown was stopProp'd above) — mirror that on release
+                // so slider's bubble-phase mouseup doesn't see it and try to navigate
+                event.stopPropagation();
                 // if the mouse actually moved, suppress the synthetic click that follows mouseup
-                // so _onClick doesn't fire a close on what was really a drag gesture
+                // so _onClick doesn't fire a toggle on what was really a drag gesture
                 if (this._panMoved) {
-                    event.stopPropagation();
                     const swallow = (e) => { e.stopPropagation(); document.removeEventListener('click', swallow, true); };
                     document.addEventListener('click', swallow, { capture: true });
                     // also drop the swallow if no click follows
@@ -118,6 +138,7 @@ var ZooomPanZoom = (function () {
                     // two-finger pinch start
                     event.stopPropagation();
                     event.preventDefault();
+                    this._cancelAnim();
                     this._pinchActive = true;
                     this._touchPanActive = false;
                     const [t1, t2] = two;
@@ -132,6 +153,7 @@ var ZooomPanZoom = (function () {
                 if (this.isZoomed) {
                     // we own the gesture — pan, and block slider's bubble-phase swipe
                     event.stopPropagation();
+                    this._cancelAnim();
                     const t = event.touches[0];
                     this._touchPanActive = true;
                     this._touchPanStart = { x: t.clientX, y: t.clientY };
@@ -224,6 +246,7 @@ var ZooomPanZoom = (function () {
             document.addEventListener('touchmove', this._onTouchMove, { capture: true, passive: false });
             document.addEventListener('touchend', this._onTouchEnd, { capture: true, passive: false });
             document.addEventListener('touchcancel', this._onTouchEnd, { capture: true, passive: false });
+            window.addEventListener('resize', this._onResize);
         }
         uninstall() {
             this._installed = false;
@@ -236,11 +259,7 @@ var ZooomPanZoom = (function () {
             document.removeEventListener('touchmove', this._onTouchMove, { capture: true });
             document.removeEventListener('touchend', this._onTouchEnd, { capture: true });
             document.removeEventListener('touchcancel', this._onTouchEnd, { capture: true });
-            if (this._clickTimer !== null) {
-                clearTimeout(this._clickTimer);
-                this._clickTimer = null;
-            }
-            this._clickPending = null;
+            window.removeEventListener('resize', this._onResize);
             this._clone = null;
             this._base = { scale: 1, x: 0, y: 0 };
             this._current = { scale: 1, x: 0, y: 0 };
@@ -255,15 +274,60 @@ var ZooomPanZoom = (function () {
             if (!clone)
                 return;
             this._clone = clone;
+            // prevent native HTML5 image drag — otherwise the browser shows a drag ghost
+            // and swallows mouseup, leaving _panActive stuck as true
+            clone.draggable = false;
+            clone.addEventListener('dragstart', this._preventDrag);
+            clone.style.cursor = 'grab';
+            // hint compositor — keeps transform updates on the GPU during pan, avoids repaints
+            clone.style.willChange = 'transform';
+            // iOS Safari: disable native pinch/double-tap zoom, long-press callout (Save Image),
+            // selection and image drag — otherwise these gestures fight our pan/zoom handlers
+            clone.style.touchAction = 'none';
+            clone.style.webkitTouchCallout = 'none';
+            clone.style.userSelect = 'none';
+            clone.style.webkitUserSelect = 'none';
+            clone.style.webkitUserDrag = 'none';
+            this._cacheLayout();
             this._base = this._parseTransform(clone.style.transform);
             this._current = Object.assign({}, this._base);
+        }
+        _cacheLayout() {
+            const c = this._clone;
+            if (!c) {
+                this._layout = null;
+                return;
+            }
+            this._layout = {
+                vw: document.documentElement.clientWidth,
+                vh: document.documentElement.clientHeight,
+                baseW: c.clientWidth,
+                baseH: c.clientHeight,
+                offsetLeft: c.offsetLeft,
+                offsetTop: c.offsetTop,
+            };
         }
         _onClose() {
             if (!this._installed)
                 return;
+            if (this._clone) {
+                this._clone.removeEventListener('dragstart', this._preventDrag);
+                this._clone.style.willChange = '';
+                this._clone.style.touchAction = '';
+                this._clone.style.webkitTouchCallout = '';
+                this._clone.style.userSelect = '';
+                this._clone.style.webkitUserSelect = '';
+                this._clone.style.webkitUserDrag = '';
+            }
             this._clone = null;
+            this._layout = null;
             this._base = { scale: 1, x: 0, y: 0 };
             this._current = { scale: 1, x: 0, y: 0 };
+            this._panActive = false;
+            this._panMoved = false;
+            this._pinchActive = false;
+            this._touchPanActive = false;
+            this._animating = false;
         }
         /**
          * Parse `matrix(a,0,0,d,tx,ty)` (the shape the core writes).
@@ -281,6 +345,11 @@ var ZooomPanZoom = (function () {
             if (!c)
                 return;
             const { scale, x, y } = this._current;
+            // ensure instant pan/wheel — slider sets inline `transition: transform Nms` on its clones,
+            // which would otherwise animate every mousemove and make pan feel laggy.
+            // only allow CSS transition while we're animating a click toggle.
+            if (!this._animating && c.style.transition !== 'none')
+                c.style.transition = 'none';
             c.style.transform = `matrix(${scale},0,0,${scale},${x},${y})`;
         }
         /**
@@ -295,15 +364,21 @@ var ZooomPanZoom = (function () {
             if (newS === oldS)
                 return;
             const ratio = newS / oldS;
+            // CSS transform-origin defaults to center, so the matrix translation tx is RELATIVE
+            // to the element's natural CSS center, not to viewport origin. Anchor math must
+            // subtract the natural center to keep the cursor's pixel under the cursor.
+            const L = this._layout;
+            const cx = L ? L.offsetLeft + L.baseW / 2 : 0;
+            const cy = L ? L.offsetTop + L.baseH / 2 : 0;
             this._current = {
                 scale: newS,
-                x: anchorX - (anchorX - this._current.x) * ratio,
-                y: anchorY - (anchorY - this._current.y) * ratio,
+                x: (anchorX - cx) * (1 - ratio) + ratio * this._current.x,
+                y: (anchorY - cy) * (1 - ratio) + ratio * this._current.y,
             };
             this._clampPan();
             this._applyTransform();
         }
-        _doubleClickToggle(anchorX, anchorY) {
+        _toggleZoom(anchorX, anchorY) {
             if (!this._clone || this._animating)
                 return;
             const target = this.isZoomed ? this._base.scale : this._base.scale * this._options.doubleClickScale;
@@ -323,6 +398,12 @@ var ZooomPanZoom = (function () {
             // safety fallback if transitionend doesn't fire
             setTimeout(finish, 260);
         }
+        _cancelAnim() {
+            if (!this._animating || !this._clone)
+                return;
+            this._clone.style.transition = 'none';
+            this._animating = false;
+        }
         _firstTwoTouches(list) {
             if (list.length < 2)
                 return null;
@@ -338,24 +419,22 @@ var ZooomPanZoom = (function () {
          * thumbnail's rect; the displayed size is (width|height) * _current.scale.
          */
         _clampPan() {
-            const c = this._clone;
-            if (!c)
+            const L = this._layout;
+            if (!L)
                 return;
-            const vw = document.documentElement.clientWidth;
-            const vh = document.documentElement.clientHeight;
-            const w = c.clientWidth * this._current.scale;
-            const h = c.clientHeight * this._current.scale;
-            const baseLeft = c.offsetLeft - (w - c.clientWidth) / 2;
-            const baseTop = c.offsetTop - (h - c.clientHeight) / 2;
-            const minX = (vw - w) - baseLeft;
+            const w = L.baseW * this._current.scale;
+            const h = L.baseH * this._current.scale;
+            const baseLeft = L.offsetLeft - (w - L.baseW) / 2;
+            const baseTop = L.offsetTop - (h - L.baseH) / 2;
+            const minX = (L.vw - w) - baseLeft;
             const maxX = -baseLeft;
-            const minY = (vh - h) - baseTop;
+            const minY = (L.vh - h) - baseTop;
             const maxY = -baseTop;
-            if (w <= vw)
+            if (w <= L.vw)
                 this._current.x = (minX + maxX) / 2;
             else
                 this._current.x = Math.min(maxX, Math.max(minX, this._current.x));
-            if (h <= vh)
+            if (h <= L.vh)
                 this._current.y = (minY + maxY) / 2;
             else
                 this._current.y = Math.min(maxY, Math.max(minY, this._current.y));

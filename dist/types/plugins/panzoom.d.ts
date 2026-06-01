@@ -13,9 +13,8 @@ export default class PanZoomPlugin implements ZooomPlugin {
     private _base;
     private _current;
     private _installed;
-    private _clickTimer;
-    private _clickPending;
     private _animating;
+    private _layout;
     private _panStart;
     private _panStartCurrent;
     private _panActive;
@@ -29,9 +28,12 @@ export default class PanZoomPlugin implements ZooomPlugin {
     private _touchPanStartCurrent;
     constructor(options?: PanZoomOptions);
     install(ctx: ZooomContext): void;
+    private _onResize;
     uninstall(): void;
     get isZoomed(): boolean;
     private _onOpen;
+    private _cacheLayout;
+    private _preventDrag;
     private _onClose;
     /**
      * Parse `matrix(a,0,0,d,tx,ty)` (the shape the core writes).
@@ -47,8 +49,9 @@ export default class PanZoomPlugin implements ZooomPlugin {
      */
     private _zoomAt;
     private _onClick;
-    private _doubleClickToggle;
+    private _toggleZoom;
     private _onMouseDown;
+    private _cancelAnim;
     private _onMouseMove;
     private _onMouseUp;
     private _firstTwoTouches;

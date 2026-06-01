@@ -381,9 +381,7 @@
             window.innerWidth ||
             document.documentElement.clientWidth ||
             document.body.clientWidth;
-
           const widthWindow = windowWidth < responsiveMin ? true : false;
-
           // I set different cursors depending on the width of the window
           const root = document.documentElement;
           root.style.setProperty(
@@ -394,9 +392,10 @@
             "--zoom-out",
             widthWindow ? "default" : "zoom-out"
           );
-
           return widthWindow;
         },
+
+        closeButton: true,
 
         onOpen: function (element) {
           const nextSibling = element.nextElementSibling
@@ -429,7 +428,14 @@
           }
         },
       })
-        .use(new ZooomSlider({ effect: "slide", counter: true, preload: 1 }))
+        .use(
+          new ZooomSlider({
+            effect: "slide",
+            counter: true,
+            preload: 1,
+            loadingIndicator: true,
+          })
+        )
         .use(new ZooomPanZoom());
     </script>
   </body>

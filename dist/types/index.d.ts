@@ -23,7 +23,9 @@ export default class Zooom {
     private _listeners;
     private _coreClones;
     private _returnFocus;
-    constructor(className: string, { zIndex, animationTime, cursor, overlay, onResize, onOpen, onClose, }: ConstructorObject);
+    private _closeButton;
+    private _closeBtn;
+    constructor(className: string, { zIndex, animationTime, cursor, overlay, closeButton, onResize, onOpen, onClose, }: ConstructorObject);
     use: (plugin: ZooomPlugin) => this;
     _createContext: () => ZooomContext;
     _emit: (event: ZooomEvent, ...args: any[]) => void;
@@ -34,6 +36,7 @@ export default class Zooom {
     _handleEvent: () => void;
     _handleKeydown: (event: KeyboardEvent) => void;
     _createStyleAndAddToHead: () => void;
+    _createCloseButton: () => void;
     _zooomInit: (instant?: boolean) => void;
     _cloneImg: (image: HTMLImageElement, instant?: boolean) => void;
     _reset: () => void;

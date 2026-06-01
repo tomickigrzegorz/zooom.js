@@ -1,6 +1,6 @@
 /*!
 * Zooom.js - the easiest way to enlarge a photo
-* @version v1.3.0
+* @version v1.4.0
 * @link https://github.com/tomickigrzegorz/zooom.js
 * @license MIT
 */
@@ -52,16 +52,55 @@ const loadImage = (target, bigImage) => {
         target.removeAttribute("data-zooom-big");
     });
 };
+/**
+ * @function resolveImageRect - geometry for cloning, robust to lazy/unloaded images.
+ *
+ * A `loading="lazy"` image that hasn't loaded yet (e.g. far below the fold) can report a
+ * degenerate `getBoundingClientRect()` — typically `height: 0` (and sometimes `width: 0`)
+ * when CSS sets `height:auto` and the browser hasn't reserved aspect-ratio space. Cloning
+ * straight from that rect produces a zero-size, invisible clone. This reconstructs the
+ * missing dimension(s) from the intrinsic aspect ratio (natural size if available, else the
+ * width/height attributes), keeping the real on-screen position (left/top) intact.
+ */
+const resolveImageRect = (image) => {
+    const r = image.getBoundingClientRect();
+    let width = r.width;
+    let height = r.height;
+    if (width > 0 && height > 0) {
+        return { width, height, left: r.left, top: r.top };
+    }
+    const nw = image.naturalWidth;
+    const nh = image.naturalHeight;
+    const aw = parseFloat(image.getAttribute("width") || "") || 0;
+    const ah = parseFloat(image.getAttribute("height") || "") || 0;
+    // ratio = height / width
+    const ratio = nw > 0 && nh > 0 ? nh / nw : aw > 0 && ah > 0 ? ah / aw : 0;
+    if (width > 0 && ratio > 0)
+        height = width * ratio;
+    else if (height > 0 && ratio > 0)
+        width = height / ratio;
+    else {
+        width = width || nw || aw;
+        height = height || nh || ah;
+    }
+    // never hand back a zero box — fall back to intrinsic/attribute size as a last resort
+    if (!(width > 0))
+        width = nw || aw || 1;
+    if (!(height > 0))
+        height = nh || ah || 1;
+    return { width, height, left: r.left, top: r.top };
+};
 
 /**
  * @class Zooom
  */
 class Zooom {
-    constructor(className, { zIndex, animationTime, cursor, overlay, onResize = () => { }, onOpen = () => { }, onClose = () => { }, }) {
+    constructor(className, { zIndex, animationTime, cursor, overlay, closeButton = false, onResize = () => { }, onOpen = () => { }, onClose = () => { }, }) {
         // clones produced by the core's initial zoom — used by _reset to decide animation style
         this._coreClones = new WeakSet();
         // element that had focus before the zoom opened — restored on close
         this._returnFocus = null;
+        this._closeBtn = null;
         this.use = (plugin) => {
             plugin.install(this._createContext());
             this._plugins.push(plugin);
@@ -78,6 +117,7 @@ class Zooom {
                 get animTime() { return self._animTime; },
                 get zIndex() { return self._zIndex; },
                 get overlayLayer() { return self._overlayLayer; },
+                get closeButton() { return self._closeButton; },
                 on(event, handler) {
                     if (!self._listeners.has(event)) {
                         self._listeners.set(event, []);
@@ -158,14 +198,18 @@ class Zooom {
                 }
             }
             else if (dataZoomed === "true" || target.id === this._overlayId) {
+                if (this._closeButton && dataZoomed === "true")
+                    return;
                 this._handleEvent();
             }
         };
         this._handleEvent = () => {
+            var _a;
             const imagezooom = document.querySelector(`[${this._dataAttr}="true"]`);
             if (!imagezooom)
                 return;
             this._reset();
+            (_a = this._closeBtn) === null || _a === void 0 ? void 0 : _a.classList.remove("visible");
             setTimeout(() => {
                 imagezooom.setAttribute(this._dataAttr, "false");
             }, this._animTime);
@@ -210,9 +254,28 @@ class Zooom {
         this._createStyleAndAddToHead = () => {
             const background = `#zooom-overlay{position:fixed;pointer-events:none;width:100%;background:rgba(255,255,255,0);height:100%;top:0;justify-content:center;align-items:center;z-index:${this._zIndex};margin:auto;-webkit-transition:background ${this._animTime}ms ease-in-out;transition:background ${this._animTime}ms ease-in-out;${this._cursorOut}}`;
             const css = `.${this._element}{${this._cursorIn}};@-webkit-keyframes zooom-fade{0%{opacity:0}}@keyframes zooom-fade{0%{opacity:0}}[data-zoomed="true"]{${this._cursorOut}position:relative;z-index:${this._zIndex + 9};transition:transform ${this._animTime}ms ease-in-out;}`;
-            document.head.insertAdjacentHTML("beforeend", `<style>html{scrollbar-gutter:stable}${css}${background}</style>`);
+            const closeBtnCss = this._closeButton
+                ? `.zooom-close-btn{position:fixed;top:16px;right:16px;z-index:${this._zIndex + 10};background:rgba(255,255,255,0.85);color:#222;border:none;border-radius:50%;width:36px;height:36px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 200ms ease-in-out,background 200ms ease;box-shadow:0 2px 8px rgba(0,0,0,0.2);}.zooom-close-btn.visible{opacity:1;pointer-events:auto;}.zooom-close-btn:hover{background:rgba(255,255,255,1);}`
+                : "";
+            document.head.insertAdjacentHTML("beforeend", `<style>html{scrollbar-gutter:stable}${css}${background}${closeBtnCss}</style>`);
+        };
+        this._createCloseButton = () => {
+            if (!this._closeButton)
+                return;
+            const btn = document.createElement("button");
+            btn.className = "zooom-close-btn";
+            btn.setAttribute("aria-label", "Close");
+            btn.innerHTML =
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                this._handleEvent();
+            });
+            document.body.appendChild(btn);
+            this._closeBtn = btn;
         };
         this._zooomInit = (instant = false) => {
+            var _a;
             document.body.style.overflow = "hidden";
             this._imageZooom.setAttribute(this._dataAttr, "true");
             // only capture return focus on the initial open — not on slider navigation,
@@ -224,6 +287,7 @@ class Zooom {
             this._overlayLayer.setAttribute("role", "dialog");
             this._overlayLayer.setAttribute("aria-modal", "true");
             this._overlayLayer.setAttribute("aria-label", this._imageZooom.alt || "Zoomed image");
+            (_a = this._closeBtn) === null || _a === void 0 ? void 0 : _a.classList.add("visible");
             this._cloneImg(this._imageZooom, instant);
             fadeIn(this._overlayLayer, this._overlay);
             this._onOpen(this._imageZooom);
@@ -233,7 +297,7 @@ class Zooom {
             var _a;
             this._clonedImg = document.createElement("img");
             let src = image.dataset.zoooomSrc || image.currentSrc || image.src;
-            let { width, height, left, top } = image.getBoundingClientRect();
+            let { width, height, left, top } = resolveImageRect(image);
             const { clientWidth, clientHeight, offsetWidth } = document.documentElement;
             const scroll = clientWidth - offsetWidth;
             const X = (clientWidth - scroll) / 2 - left - width / 2;
@@ -312,6 +376,7 @@ class Zooom {
         this._allImages = [];
         this._plugins = [];
         this._listeners = new Map();
+        this._closeButton = closeButton;
         this._onResize = onResize;
         this._onOpen = onOpen;
         this._onClose = onClose;
@@ -329,6 +394,7 @@ class Zooom {
         window.addEventListener("keydown", this._handleKeydown);
         this._eventHandle();
         this._createStyleAndAddToHead();
+        this._createCloseButton();
     }
 }
 

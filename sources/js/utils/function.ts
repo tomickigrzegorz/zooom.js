@@ -50,4 +50,41 @@ const loadImage = (target: HTMLImageElement, bigImage: string): Promise<string> 
   });
 };
 
-export { fadeIn, fadeOut, debounce, loadImage };
+/**
+ * @function resolveImageRect - geometry for cloning, robust to lazy/unloaded images.
+ *
+ * A `loading="lazy"` image that hasn't loaded yet (e.g. far below the fold) can report a
+ * degenerate `getBoundingClientRect()` — typically `height: 0` (and sometimes `width: 0`)
+ * when CSS sets `height:auto` and the browser hasn't reserved aspect-ratio space. Cloning
+ * straight from that rect produces a zero-size, invisible clone. This reconstructs the
+ * missing dimension(s) from the intrinsic aspect ratio (natural size if available, else the
+ * width/height attributes), keeping the real on-screen position (left/top) intact.
+ */
+const resolveImageRect = (
+  image: HTMLImageElement
+): { width: number; height: number; left: number; top: number } => {
+  const r = image.getBoundingClientRect();
+  let width = r.width;
+  let height = r.height;
+  if (width > 0 && height > 0) {
+    return { width, height, left: r.left, top: r.top };
+  }
+  const nw = image.naturalWidth;
+  const nh = image.naturalHeight;
+  const aw = parseFloat(image.getAttribute("width") || "") || 0;
+  const ah = parseFloat(image.getAttribute("height") || "") || 0;
+  // ratio = height / width
+  const ratio = nw > 0 && nh > 0 ? nh / nw : aw > 0 && ah > 0 ? ah / aw : 0;
+  if (width > 0 && ratio > 0) height = width * ratio;
+  else if (height > 0 && ratio > 0) width = height / ratio;
+  else {
+    width = width || nw || aw;
+    height = height || nh || ah;
+  }
+  // never hand back a zero box — fall back to intrinsic/attribute size as a last resort
+  if (!(width > 0)) width = nw || aw || 1;
+  if (!(height > 0)) height = nh || ah || 1;
+  return { width, height, left: r.left, top: r.top };
+};
+
+export { fadeIn, fadeOut, debounce, loadImage, resolveImageRect };

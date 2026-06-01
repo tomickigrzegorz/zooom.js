@@ -1,6 +1,6 @@
 {
   "name": "zooom",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "The easiest way to zooming a photo",
   "main": "dist/zooom.umd.min.js",
   "browser": "dist/zooom.umd.min.js",
@@ -36,14 +36,15 @@
   "license": "MIT",
   "homepage": "https://github.com/tomickigrzegorz/zooom.js",
   "scripts": {
-    "dev": "concurrently \"yarn style:watch\" \"yarn watch\"",
-    "prod": "yarn style:prod && yarn build && yarn build:types",
+    "dev": "concurrently \"pnpm style:watch\" \"pnpm watch\"",
+    "prod": "pnpm style:prod && pnpm build && pnpm build:types",
     "build": "rollup -c --environment PRODUCTION",
     "build:types": "tsc -p tsconfig.types.json",
     "watch": "rollup -c -w",
     "style:watch": "sass --watch sources/scss:docs",
     "style:prod": "sass sources/scss:docs"
   },
+  "packageManager": "pnpm@9.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/tomickigrzegorz/zooom.js.git"
